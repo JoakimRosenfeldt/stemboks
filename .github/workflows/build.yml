@@ -1,0 +1,67 @@
+name: build
+on: [push, pull_request]
+jobs:
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: brew install qt ffmpeg hidapi pkg-config
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_PREFIX_PATH="$(brew --prefix qt);$(brew --prefix)"
+      - name: Build
+        run: cmake --build build -j3
+      - name: Package
+        run: |
+          $(brew --prefix qt)/bin/macdeployqt build/stemboks.app -dmg || true
+          ls build
+      - uses: actions/upload-artifact@v4
+        with: { name: stemboks-macos, path: build/*.dmg }
+  linux:
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qt6-base-dev qt6-svg-dev libqt6sql6-sqlite \
+            libavformat-dev libavcodec-dev libavutil-dev libswresample-dev \
+            libhidapi-dev libasound2-dev libpulse-dev libudev-dev pkg-config
+      - name: Configure
+        run: cmake -S . -B build
+      - name: Build
+        run: cmake --build build -j3
+      - name: Smoke test (offscreen)
+        run: QT_QPA_PLATFORM=offscreen timeout 10 ./build/stemboks --help || test $? -eq 124
+      - uses: actions/upload-artifact@v4
+        with: { name: stemboks-linux-${{ matrix.arch }}, path: build/stemboks }
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run: { shell: msys2 {0} }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >-
+            mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-qt6-base mingw-w64-x86_64-qt6-svg
+            mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-hidapi mingw-w64-x86_64-pkgconf
+      - name: Configure
+        run: cmake -S . -B build -G Ninja
+      - name: Build
+        run: cmake --build build -j3
+      - name: Package
+        run: |
+          mkdir -p dist && cp build/stemboks.exe dist/
+          windeployqt6 dist/stemboks.exe || true
+      - uses: actions/upload-artifact@v4
+        with: { name: stemboks-windows, path: dist }
