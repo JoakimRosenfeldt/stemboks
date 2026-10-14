@@ -16,6 +16,8 @@ public:
     enum Page { Hidden, Source, Browse, Search, TagList };
     void showPage(Page p);
     Page page() const { return m_page; }
+    void loadSelected(int deck);
+    void setTargetDeck(int deck);
 signals:
     void loadToDeck(int deck, const QString& path);
     void openStemsManager();
@@ -33,7 +35,10 @@ private:
     // search page
     QLineEdit* m_searchEdit; QTableWidget* m_searchTable; QWidget* m_keyboard;
     QString m_category;         // Playlist/Artist/Album/Key/Folder/History/Matching
-    int m_fontStep = 1;
+    int m_fontStep = 1, m_targetDeck = 0;
+    QString m_sourceRoot;
+    QWidget* m_tagRemove;
+    QVector<class QPushButton*> m_targets;
     void buildSource(); void buildBrowse(); void buildSearch(); void buildKeyboard(bool azerty);
     void refreshSource(); void refreshGroups(); void showTracks(const QVector<LibraryTrack>& tracks, QTableWidget* table);
     void trackActivated(QTableWidget* table, int row);

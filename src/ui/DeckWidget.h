@@ -17,7 +17,9 @@ public:
     void refresh(); // called by UI timer
 private:
     Deck* m_deck;
+    QLabel *m_artist, *m_artwork, *m_duration, *m_timeCaption;
     QLabel *m_title, *m_time, *m_bpm, *m_key, *m_tempoPct, *m_bpmBig, *m_status, *m_trackNo, *m_colorFxVal;
+    QPushButton* m_colorFx;
     QPushButton *m_cue, *m_sync, *m_mt, *m_quantize, *m_tempoRange, *m_play;
     QVector<QPushButton*> m_pads;
     QVector<QPushButton*> m_padModes;

@@ -16,6 +16,7 @@ public:
 protected:
     void closeEvent(QCloseEvent*) override;
     void keyPressEvent(QKeyEvent*) override;
+    void keyReleaseEvent(QKeyEvent*) override;
     void dragEnterEvent(QDragEnterEvent*) override;
     void dropEvent(QDropEvent*) override;
 private:
@@ -25,9 +26,20 @@ private:
     PrefsWidget* m_prefs;
     StemsManagerWidget* m_stems;
     SecondScreen* m_second = nullptr;
-    QWidget *m_mixPage, *m_navLarge, *m_navSplit;
+    QWidget *m_mixPage = nullptr, *m_navLarge = nullptr, *m_navSplit = nullptr;
     class QStackedWidget* m_body;
     QTimer* m_timer;
+    QWidget *m_deckBars = nullptr, *m_mixerStrip = nullptr, *m_waveColumns = nullptr;
+    class QVBoxLayout* m_waveLayout = nullptr;
+    class QStackedWidget* m_barStacks[2];
+    class QStackedWidget* m_waveStacks[2];
+    int m_selectedDeck = 0;
+    int m_loadGeneration[4] = {};
+    bool m_keyboardCue[2] = {};
+    QString m_samplerPaths[8];
+    bool m_applyingSettings = false;
+    void selectDeck(int deck);
+    void saveHotcues();
     void buildNav(); void buildMix(); void buildMixerStrip(QWidget* parent);
     void showMix(); void applySettingsToRegistry();
     void updateSecondScreen();

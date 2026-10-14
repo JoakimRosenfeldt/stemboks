@@ -1,11 +1,10 @@
 #pragma once
 #include "Deck.h"
+#include "Decoder.h"
 #include "Effects.h"
 #include <QObject>
 #include <array>
 #include <atomic>
-
-class Recorder;
 
 // Owns 4 decks, 8 sampler slots, 2 beat-FX units, mixer, devices (miniaudio).
 // Mixer controls in registry: mixer.crossfader.position, mixer.master.gain,

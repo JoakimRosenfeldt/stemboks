@@ -22,5 +22,6 @@ private:
     Deck* m_deck;
     ColorMode m_colorMode = Rgb;
     bool m_markerCenter = true, m_overview = false, m_dragging = false;
+    double m_dragStartX = 0, m_dragStartSec = 0;
     double m_zoomSec = 12.0; // visible seconds in scrolling mode
 };
