@@ -47,6 +47,7 @@ signals:
 
 private:
     void onControlChanged(const QString& name, double value);
+    void triggerPad(int pad, bool pressed);
     QString key(const char* k) const;
     double ctrl(const char* k, double def = 0.0) const;
 

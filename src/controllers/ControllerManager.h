@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <QHash>
 #include <QStringList>
 #include <QVector>
 
@@ -13,7 +14,7 @@
 //   device midi 0 0 "DDJ-FLX10"          (also: device hid <vid> <pid> "name")
 //   modifier "<id>" "<name>" held 0 midi midi-note <ch> <note> 0 0 0
 //   modifier-feedback "<id>" midi ...
-//   effect-selection "<id>" "fx.unit.1.slot.1" "<fxname>" midi midi-note <ch> <note> ... [off-on-release]
+//   effect-selection "<id>" "fx.unit.1.name" "<fxname>" midi midi-note <ch> <note> ... [off-on-release]
 //   input "<id>" "<dotted.control>" write absolute linear <...> midi midi-cc <ch> <cc> ...
 //   input "<id>" "<dotted.control>" write toggle|momentary|relative ... midi midi-note ...
 //   output "<id>" "<dotted.control>" ... midi ...   (LED feedback)

@@ -12,6 +12,7 @@
 #include <QTemporaryDir>
 #include <QtConcurrent/QtConcurrentRun>
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <complex>
 #include <functional>
@@ -66,6 +67,10 @@ QStringList stemFiles(const QString& folder) {
 }
 using Stems = std::array<std::vector<float>, kNumStems>;
 using Progress = std::function<void(int, const QString&)>;
+std::atomic<bool> cancelled{false};
+void checkCancelled() {
+    if (cancelled.load(std::memory_order_relaxed)) throw std::runtime_error("Cancelled during shutdown");
+}
 void writeWav(const QString& path, const std::vector<float>& samples, int rate) {
     if (samples.size() > (std::numeric_limits<quint32>::max() - 36) / sizeof(float)) throw std::runtime_error("Stem exceeds WAV 4 GB limit");
     QSaveFile file(path);
@@ -75,7 +80,9 @@ void writeWav(const QString& path, const std::vector<float>& samples, int rate) 
     out.writeRawData("RIFF", 4); out << quint32(36 + bytes); out.writeRawData("WAVEfmt ", 8);
     out << quint32(16) << quint16(3) << quint16(2) << quint32(rate) << quint32(rate * 8) << quint16(8) << quint16(32);
     out.writeRawData("data", 4); out << bytes;
+    size_t written = 0;
     for (float sample : samples) {
+        if ((written++ & 4095) == 0) checkCancelled();
         if (!std::isfinite(sample)) throw std::runtime_error("Separation returned non-finite audio");
         out << sample;
     }
@@ -88,6 +95,7 @@ Stems heuristic(const AudioBuffer& audio, const Progress& progress) {
     const float lowAlpha = 1 - std::exp(-2 * 3.14159265358979323846 * 180 / audio.sampleRate);
     const float smoothAlpha = 1 - std::exp(-2 * 3.14159265358979323846 * 2500 / audio.sampleRate);
     for (qint64 i = 0; i < audio.frames(); ++i) {
+        if ((i & 4095) == 0) checkCancelled();
         const float left = audio.interleaved[2 * i], right = audio.interleaved[2 * i + 1];
         const float mid = (left + right) * 0.5f, side = (left - right) * 0.5f;
         low += lowAlpha * (mid - low); smooth += smoothAlpha * (mid - smooth);
@@ -102,7 +110,7 @@ Stems heuristic(const AudioBuffer& audio, const Progress& progress) {
 }
 
 #ifdef STEMBOKS_HAVE_ONNX
-constexpr int fftSize = 4096, hop = 1024, bins = 2049, chunkFrames = 343980;
+constexpr int fftSize = 4096, hop = 1024, bins = 2048, chunkFrames = 343980;
 constexpr double pi = 3.14159265358979323846;
 using Complex = std::complex<float>;
 void fft(std::vector<Complex>& data, bool inverse) {
@@ -133,19 +141,28 @@ int reflected(int frame, int length) {
     while (frame < 0 || frame >= length) frame = frame < 0 ? -frame : 2 * length - 2 - frame;
     return frame;
 }
+// Demucs _spec: reflect-pad 3*hop/2 on the left and round up to a hop
+// on the right, center the STFT, then keep frames [2, 2+ceil(T/hop)).
+// _ispec restores two zero frames on each side and crops the same padding.
+constexpr int specPad = 3 * hop / 2;
 std::vector<float> stft(const std::vector<float>& audio, int times, const std::vector<float>& hann) {
     std::vector<float> result(size_t(4) * bins * times);
     std::vector<Complex> data(fftSize);
+    const int paddedLength = times * hop + 2 * specPad;
+    const float scale = 1 / std::sqrt(float(fftSize));
     for (int channel = 0; channel < 2; ++channel) for (int t = 0; t < times; ++t) {
+        checkCancelled();
         for (int i = 0; i < fftSize; ++i) {
-            const int frame = reflected(t * hop + i - fftSize / 2, chunkFrames);
+            const int padded = reflected((t + 2) * hop + i - fftSize / 2, paddedLength);
+            const int frame = reflected(padded - specPad, chunkFrames);
             data[i] = audio[size_t(frame) * 2 + channel] * hann[i];
         }
         fft(data, false);
-        // CaC uses [left-real, left-imaginary, right-real, right-imaginary].
+        // CaC order: left-real, left-imaginary, right-real, right-imaginary.
+        // normalized=True divides by sqrt(nfft); Demucs drops Nyquist bin 2048.
         for (int f = 0; f < bins; ++f) {
-            result[(size_t(channel * 2) * bins + f) * times + t] = data[f].real();
-            result[(size_t(channel * 2 + 1) * bins + f) * times + t] = data[f].imag();
+            result[(size_t(channel * 2) * bins + f) * times + t] = data[f].real() * scale;
+            result[(size_t(channel * 2 + 1) * bins + f) * times + t] = data[f].imag() * scale;
         }
     }
     return result;
@@ -153,16 +170,21 @@ std::vector<float> stft(const std::vector<float>& audio, int times, const std::v
 std::vector<float> istft(const float* spec, int times, const std::vector<float>& hann) {
     std::vector<float> result(size_t(chunkFrames) * 2, 0), weights(chunkFrames, 0);
     std::vector<Complex> data(fftSize);
-    for (int channel = 0; channel < 2; ++channel) for (int t = 0; t < times; ++t) {
-        for (int f = 0; f < bins; ++f) {
-            data[f] = {spec[(size_t(channel * 2) * bins + f) * times + t], spec[(size_t(channel * 2 + 1) * bins + f) * times + t]};
-            if (f > 0 && f < bins - 1) data[fftSize - f] = std::conj(data[f]);
+    const float scale = std::sqrt(float(fftSize));
+    for (int channel = 0; channel < 2; ++channel) for (int t = 0; t < times + 4; ++t) {
+        checkCancelled();
+        std::fill(data.begin(), data.end(), Complex{});
+        if (t >= 2 && t < times + 2) for (int f = 0; f < bins; ++f) {
+            data[f] = Complex(spec[(size_t(channel * 2) * bins + f) * times + t - 2],
+                              spec[(size_t(channel * 2 + 1) * bins + f) * times + t - 2]) * scale;
+            if (f > 0) data[fftSize - f] = std::conj(data[f]);
         }
         fft(data, true);
         for (int i = 0; i < fftSize; ++i) {
-            const int frame = t * hop + i - fftSize / 2;
+            const int frame = t * hop + i - fftSize / 2 - specPad;
             if (frame < 0 || frame >= chunkFrames) continue;
             result[size_t(frame) * 2 + channel] += data[i].real() * hann[i];
+            // Zero-padded edge frames still contribute to torch.istft's envelope.
             if (channel == 0) weights[frame] += hann[i] * hann[i];
         }
     }
@@ -186,62 +208,107 @@ Stems separate(const AudioBuffer& audio, const QString& model, const Progress& p
     const std::string modelName = QFile::encodeName(model).toStdString();
 #endif
     Ort::Session session(env, modelName.c_str(), options);
-    if (session.GetInputCount() != 1) throw std::runtime_error("Model mismatch: expected one CaC spectrogram input [1,4,2049,T]");
-    const auto inputType = session.GetInputTypeInfo(0);
-    const auto tensorInfo = inputType.GetTensorTypeAndShapeInfo();
-    const auto shape = tensorInfo.GetShape();
-    const int times = chunkFrames / hop + 1;
-    const std::vector<int64_t> inputShape{1, 4, bins, times};
-    if (tensorInfo.GetElementType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT || !matches(shape, inputShape))
-        throw std::runtime_error("Model mismatch: expected float32 [1,4,2049,336] spectrogram for 7.8s at 44100 Hz");
-    if (session.GetOutputCount() != 1) throw std::runtime_error("Model mismatch: expected one four-stem output");
+    const size_t inputCount = session.GetInputCount(), outputCount = session.GetOutputCount();
+    if (inputCount < 1 || inputCount > 2) throw std::runtime_error("Model mismatch: expected one spectrogram input and optional waveform input");
+    if (outputCount < 1 || outputCount > 2) throw std::runtime_error("Model mismatch: expected one stem output or spectral and temporal outputs");
+    const int times = (chunkFrames + hop - 1) / hop;
+    const std::vector<int64_t> inputShape{1, 4, bins, times}, waveShape{1, 2, chunkFrames};
     Ort::AllocatorWithDefaultOptions allocator;
-    const auto inputName = session.GetInputNameAllocated(0, allocator), outputName = session.GetOutputNameAllocated(0, allocator);
-    const char* inputs[] = {inputName.get()}; const char* outputs[] = {outputName.get()};
+    std::vector<Ort::AllocatedStringPtr> inputNames, outputNames;
+    std::vector<const char*> inputs, outputs;
+    for (size_t i = 0; i < inputCount; ++i) {
+        const auto type = session.GetInputTypeInfo(i);
+        if (type.GetONNXType() != ONNX_TYPE_TENSOR) throw std::runtime_error("Model input mismatch: expected float32 tensors");
+        const auto info = type.GetTensorTypeAndShapeInfo();
+        if (info.GetElementType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT || !matches(info.GetShape(), i == 0 ? inputShape : waveShape))
+            throw std::runtime_error(i == 0 ? "Model input 0 mismatch: expected float32 [1,4,2048,336] spectrogram"
+                                          : "Model input 1 mismatch: expected float32 [1,2,343980] waveform");
+        inputNames.push_back(session.GetInputNameAllocated(i, allocator)); inputs.push_back(inputNames.back().get());
+    }
+    for (size_t i = 0; i < outputCount; ++i) {
+        outputNames.push_back(session.GetOutputNameAllocated(i, allocator)); outputs.push_back(outputNames.back().get());
+    }
     auto memory = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
     const auto hann = window();
     Stems result; for (auto& stem : result) stem.resize(audio.interleaved.size(), 0);
     std::vector<float> weights(size_t(audio.frames()), 0);
     constexpr int stride = chunkFrames * 3 / 4;
     for (qint64 start = 0; start < audio.frames(); start += stride) {
+        checkCancelled();
         progress(5 + int(80 * start / audio.frames()), "Separating with HTDemucs ONNX");
         std::vector<float> chunk(size_t(chunkFrames) * 2, 0);
         const int count = int(std::min<qint64>(chunkFrames, audio.frames() - start));
         std::copy_n(audio.interleaved.constData() + start * 2, size_t(count) * 2, chunk.begin());
         auto spec = stft(chunk, times, hann);
-        auto input = Ort::Value::CreateTensor<float>(memory, spec.data(), spec.size(), inputShape.data(), inputShape.size());
-        auto output = session.Run(Ort::RunOptions{nullptr}, inputs, &input, 1, outputs, 1);
-        if (output.empty() || !output[0].IsTensor()) throw std::runtime_error("Model returned no stem tensor");
-        const auto info = output[0].GetTensorTypeAndShapeInfo(); const auto dims = info.GetShape();
-        if (info.GetElementType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) throw std::runtime_error("Model returned a non-float stem tensor");
-        const float* data = output[0].GetTensorData<float>();
-        const bool spectral = dims == std::vector<int64_t>{1, 4, 4, bins, times} || dims == std::vector<int64_t>{1, 16, bins, times};
-        const bool temporal = dims == std::vector<int64_t>{1, 4, 2, chunkFrames};
-        if (!spectral && !temporal) throw std::runtime_error("Model output mismatch: expected [1,4,4,2049,T], [1,16,2049,T] or [1,4,2,343980]");
-        for (int stem = 0; stem < kNumStems; ++stem) {
-            std::vector<float> decoded;
-            if (spectral) decoded = istft(data + size_t(stem) * 4 * bins * times, times, hann);
-            for (int frame = 0; frame < count; ++frame) {
-                // Positive triangular weights avoid zero gain at either file boundary.
-                const float weight = float(std::min(frame + 1, chunkFrames - frame)) / (chunkFrames / 2);
-                if (stem == 0) weights[size_t(start + frame)] += weight;
-                for (int channel = 0; channel < 2; ++channel) {
-                    const float value = spectral ? decoded[size_t(frame) * 2 + channel] : data[(size_t(stem) * 2 + channel) * chunkFrames + frame];
+        std::vector<Ort::Value> tensors;
+        tensors.push_back(Ort::Value::CreateTensor<float>(memory, spec.data(), spec.size(), inputShape.data(), inputShape.size()));
+        std::vector<float> wave;
+        if (inputCount == 2) {
+            wave.resize(size_t(chunkFrames) * 2);
+            for (int channel = 0; channel < 2; ++channel) for (int frame = 0; frame < chunkFrames; ++frame)
+                wave[size_t(channel) * chunkFrames + frame] = chunk[size_t(frame) * 2 + channel];
+            tensors.push_back(Ort::Value::CreateTensor<float>(memory, wave.data(), wave.size(), waveShape.data(), waveShape.size()));
+        }
+        auto output = session.Run(Ort::RunOptions{nullptr}, inputs.data(), tensors.data(), tensors.size(), outputs.data(), outputs.size());
+        checkCancelled();
+        int stemCount = 0;
+        Stems decoded;
+        for (auto& stem : decoded) stem.resize(size_t(chunkFrames) * 2, 0);
+        if (output.size() != outputCount) throw std::runtime_error("Model returned an unexpected number of outputs");
+        for (size_t o = 0; o < output.size(); ++o) {
+            if (!output[o].IsTensor()) throw std::runtime_error("Model output mismatch: expected stem tensor");
+            const auto info = output[o].GetTensorTypeAndShapeInfo(); const auto dims = info.GetShape();
+            if (info.GetElementType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) throw std::runtime_error("Model output mismatch: expected float32 stems");
+            int countStems = 0; bool spectral = false, temporal = false;
+            if (dims.size() == 5 && dims[0] == 1 && (dims[1] == 3 || dims[1] == 4) && dims[2] == 4 && dims[3] == bins && dims[4] == times) {
+                spectral = true; countStems = int(dims[1]);
+            } else if (dims.size() == 4 && dims[0] == 1 && dims[2] == bins && dims[3] == times && (dims[1] == 12 || dims[1] == 16)) {
+                spectral = true; countStems = int(dims[1] / 4);
+            } else if (dims.size() == 4 && dims[0] == 1 && (dims[1] == 3 || dims[1] == 4) && dims[2] == 2 && dims[3] == chunkFrames) {
+                temporal = true; countStems = int(dims[1]);
+            }
+            if ((!spectral && !temporal) || (countStems != 3 && countStems != 4))
+                throw std::runtime_error("Model output mismatch: expected [1,S,4,2048,336], [1,S*4,2048,336] or [1,S,2,343980], S=3 or 4");
+            if (outputCount == 2 && ((o == 0 && !spectral) || (o == 1 && !temporal)))
+                throw std::runtime_error("Hybrid model output mismatch: output 0 must be spectral and output 1 temporal");
+            if (stemCount && stemCount != countStems) throw std::runtime_error("Model output mismatch: spectral and temporal stem counts differ");
+            stemCount = countStems;
+            const float* data = output[o].GetTensorData<float>();
+            for (int stem = 0; stem < stemCount; ++stem) {
+                checkCancelled();
+                const int target = stemCount == 3 ? (stem == 0 ? StemDrums : stem == 1 ? StemOther : StemVocals) : stem;
+                std::vector<float> spectralAudio;
+                if (spectral) spectralAudio = istft(data + size_t(stem) * 4 * bins * times, times, hann);
+                for (int frame = 0; frame < chunkFrames; ++frame) for (int channel = 0; channel < 2; ++channel) {
+                    const float value = spectral ? spectralAudio[size_t(frame) * 2 + channel]
+                        : data[(size_t(stem) * 2 + channel) * chunkFrames + frame];
                     if (!std::isfinite(value)) throw std::runtime_error("Model returned non-finite samples");
-                    result[stem][size_t(start + frame) * 2 + channel] += value * weight;
+                    decoded[target][size_t(frame) * 2 + channel] += value;
                 }
             }
         }
+        for (int frame = 0; frame < count; ++frame) {
+            // Positive triangular weights avoid zero gain at either file boundary.
+            const float weight = float(std::min(frame + 1, chunkFrames - frame)) / (chunkFrames / 2);
+            weights[size_t(start + frame)] += weight;
+            for (int stem = 0; stem < kNumStems; ++stem) for (int channel = 0; channel < 2; ++channel)
+                result[stem][size_t(start + frame) * 2 + channel] += decoded[stem][size_t(frame) * 2 + channel] * weight;
+        }
         if (start + count >= audio.frames()) break;
     }
-    for (qint64 frame = 0; frame < audio.frames(); ++frame) for (auto& stem : result)
-        for (int channel = 0; channel < 2; ++channel) stem[size_t(frame) * 2 + channel] /= weights[size_t(frame)];
+    for (qint64 frame = 0; frame < audio.frames(); ++frame) {
+        if ((frame & 4095) == 0) checkCancelled();
+        if (weights[size_t(frame)] <= 0) throw std::runtime_error("Model chunks did not cover the complete track");
+        for (auto& stem : result) for (int channel = 0; channel < 2; ++channel)
+            stem[size_t(frame) * 2 + channel] /= weights[size_t(frame)];
+    }
     return result;
 }
 #endif
 struct Result { bool ok; QString status; };
 Result runJob(const QString& path, const QString& folder, const QString& model, bool fallback, const Progress& progress) {
     try {
+        checkCancelled();
         QString error; progress(1, fallback ? "Decoding for mid/side heuristic approximation" : "Decoding for HTDemucs");
         const auto audio = Decoder::decodeFile(path, 44100, &error);
         if (!audio || audio->isEmpty() || audio->sampleRate != 44100) return {false, "Decode failed: " + error};
@@ -255,6 +322,7 @@ Result runJob(const QString& path, const QString& folder, const QString& model, 
             return {false, unavailable};
 #endif
         }
+        checkCancelled();
         const QFileInfo destination(folder);
         if (!QDir().mkpath(destination.absolutePath())) throw std::runtime_error("Cannot create stems directory");
         QTemporaryDir staging(destination.absolutePath() + "/.stemboks-stems-XXXXXX");
@@ -263,6 +331,7 @@ Result runJob(const QString& path, const QString& folder, const QString& model, 
             progress(90 + i * 2, fallback ? "Writing mid/side heuristic approximation" : "Writing stem WAVs");
             writeWav(staging.filePath(names[i] + ".wav"), stems[i], audio->sampleRate);
         }
+        checkCancelled();
         if (QFileInfo::exists(folder)) throw std::runtime_error("Stems folder already exists; refusing to overwrite it");
         if (!QDir().rename(staging.path(), folder)) throw std::runtime_error("Cannot publish stems folder");
         staging.setAutoRemove(false);
@@ -276,6 +345,7 @@ StemManager& StemManager::instance() {
     static StemManager manager;
     static const bool connected = [] {
         if (QCoreApplication::instance()) QObject::connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, &manager, [] {
+            cancelled.store(true, std::memory_order_relaxed);
             for (auto* watcher : manager.findChildren<QFutureWatcherBase*>()) watcher->waitForFinished();
         });
         return true;
@@ -297,10 +367,18 @@ bool StemManager::stemsExistFor(const QString& path) {
 bool StemManager::loadStems(const QString& path, int rate, std::array<AudioBufferPtr, kNumStems>* out) {
     if (!out || rate <= 0) return false;
     *out = {};
-    auto valid = [rate](const std::array<AudioBufferPtr, kNumStems>& stems) {
-        const qint64 frames = stems[0] ? stems[0]->frames() : 0;
-        if (frames == 0) return false;
-        for (const auto& stem : stems) if (!stem || stem->isEmpty() || stem->sampleRate != rate || stem->frames() != frames) return false;
+    auto valid = [rate](std::array<AudioBufferPtr, kNumStems>& stems) {
+        qint64 shortest = std::numeric_limits<qint64>::max(), longest = 0;
+        for (const auto& stem : stems) {
+            if (!stem || stem->isEmpty() || stem->sampleRate != rate) return false;
+            shortest = std::min(shortest, stem->frames()); longest = std::max(longest, stem->frames());
+        }
+        if (longest - shortest > 200000) return false;
+        for (auto& stem : stems) if (stem->frames() != longest) {
+            auto padded = std::make_shared<AudioBuffer>(*stem);
+            padded->interleaved.resize(longest * 2, 0.0f);
+            stem = std::move(padded);
+        }
         return true;
     };
     for (const auto& file : containers(path)) {
@@ -331,7 +409,7 @@ bool StemManager::separationAvailable(QString* whyNot) const {
     return false;
 }
 void StemManager::enqueue(const QString& path) {
-    if (path.isEmpty()) return;
+    if (path.isEmpty() || cancelled.load(std::memory_order_relaxed)) return;
     for (const auto& job : m_jobs) if (job.trackPath == path && job.progress >= 0 && job.progress < 100) return;
     m_jobs.append({path, 0, "Queued"}); emit jobsChanged(); pump();
 }
@@ -340,7 +418,7 @@ void StemManager::clearFinished() {
     emit jobsChanged();
 }
 void StemManager::pump() {
-    if (m_running) return;
+    if (m_running || cancelled.load(std::memory_order_relaxed)) return;
     auto it = std::find_if(m_jobs.begin(), m_jobs.end(), [](const Job& job) { return job.progress == 0 && job.status == "Queued"; });
     if (it == m_jobs.end()) return;
     const QString path = it->trackPath;

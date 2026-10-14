@@ -13,6 +13,7 @@
 #include <QStorageInfo>
 #include <QTextStream>
 #include <QDebug>
+#include <algorithm>
 
 namespace {
 bool execute(QSqlDatabase db, const QString& sql, const QVariantList& binds = {}) {
@@ -144,8 +145,10 @@ QVector<LibraryTrack> Library::queryTracks(const QString& where, const QVariantL
 }
 QVector<LibraryTrack> Library::allTracks(const QString& search) const {
     if (search.isEmpty()) return queryTracks("ORDER BY t.artist COLLATE NOCASE,t.title COLLATE NOCASE,t.id");
-    const QString pattern = '%' + search + '%';
-    return queryTracks("WHERE t.title LIKE ? OR t.artist LIKE ? OR t.album LIKE ? OR t.genre LIKE ? OR t.path LIKE ? ORDER BY t.artist COLLATE NOCASE,t.title COLLATE NOCASE,t.id", {pattern, pattern, pattern, pattern, pattern});
+    QString literal = search;
+    literal.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    const QString pattern = '%' + literal + '%';
+    return queryTracks("WHERE t.title LIKE ? ESCAPE '\\' OR t.artist LIKE ? ESCAPE '\\' OR t.album LIKE ? ESCAPE '\\' OR t.genre LIKE ? ESCAPE '\\' OR t.path LIKE ? ESCAPE '\\' ORDER BY t.artist COLLATE NOCASE,t.title COLLATE NOCASE,t.id", {pattern, pattern, pattern, pattern, pattern});
 }
 QVector<LibraryTrack> Library::tracksByArtist(const QString& artist) const { return queryTracks("WHERE t.artist=? ORDER BY t.album,t.title,t.id", {artist}); }
 QVector<LibraryTrack> Library::tracksByAlbum(const QString& album) const { return queryTracks("WHERE t.album=? ORDER BY t.title,t.id", {album}); }
@@ -187,13 +190,34 @@ qint64 Library::trackIdForPath(const QString& path) const {
     QSqlQuery q(m_db); q.prepare("SELECT id FROM tracks WHERE path=?"); q.addBindValue(path);
     return q.exec() && q.next() ? q.value(0).toLongLong() : -1;
 }
+namespace {
+qint64 upsertTrack(QSqlDatabase db, const TrackInfo& info, bool stemsReady) {
+    if (!db.isOpen() || info.path.isEmpty()) return -1;
+    const QString title = info.title.isEmpty() ? QFileInfo(info.path).completeBaseName() : info.title;
+    if (!execute(db, "INSERT INTO tracks(path,title,artist,album,genre,duration,bpm,key,stems_ready,added_at) VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(path) DO UPDATE SET title=excluded.title,artist=excluded.artist,album=excluded.album,genre=excluded.genre,duration=excluded.duration,bpm=CASE WHEN tracks.bpm=0 THEN excluded.bpm ELSE tracks.bpm END,key=CASE WHEN COALESCE(tracks.key,'')='' THEN excluded.key ELSE tracks.key END,stems_ready=excluded.stems_ready",
+                 {info.path, title, info.artist, info.album, info.genre, info.durationSec, info.bpm, info.keyText, stemsReady, QDateTime::currentMSecsSinceEpoch()})) return -1;
+    if (!execute(db, "UPDATE tracks SET bpm=(SELECT bpm FROM grids WHERE path=tracks.path),first_beat=(SELECT first_beat FROM grids WHERE path=tracks.path) WHERE path=? AND EXISTS(SELECT 1 FROM grids WHERE path=tracks.path)", {info.path})) return -1;
+    QSqlQuery query(db); query.prepare("SELECT id FROM tracks WHERE path=?"); query.addBindValue(info.path);
+    return query.exec() && query.next() ? query.value(0).toLongLong() : -1;
+}
+}
 qint64 Library::addOrUpdateTrack(const TrackInfo& info) {
     if (!m_db.isOpen() || info.path.isEmpty()) return -1;
-    const QString title = info.title.isEmpty() ? QFileInfo(info.path).completeBaseName() : info.title;
-    if (!execute(m_db, "INSERT INTO tracks(path,title,artist,album,genre,duration,bpm,key,stems_ready,added_at) VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(path) DO UPDATE SET title=excluded.title,artist=excluded.artist,album=excluded.album,genre=excluded.genre,duration=excluded.duration,bpm=CASE WHEN tracks.bpm=0 THEN excluded.bpm ELSE tracks.bpm END,key=CASE WHEN COALESCE(tracks.key,'')='' THEN excluded.key ELSE tracks.key END,stems_ready=excluded.stems_ready",
-                 {info.path, title, info.artist, info.album, info.genre, info.durationSec, info.bpm, info.keyText, StemManager::stemsExistFor(info.path), QDateTime::currentMSecsSinceEpoch()})) return -1;
-    execute(m_db, "UPDATE tracks SET bpm=(SELECT bpm FROM grids WHERE path=tracks.path),first_beat=(SELECT first_beat FROM grids WHERE path=tracks.path) WHERE path=? AND EXISTS(SELECT 1 FROM grids WHERE path=tracks.path)", {info.path});
-    const qint64 id = trackIdForPath(info.path); emit changed(); return id;
+    const qint64 id = upsertTrack(m_db, info, StemManager::stemsExistFor(info.path));
+    if (id >= 0) emit changed();
+    return id;
+}
+// The scan worker supplies stem availability so importing never opens containers.
+bool importScannedLibraryTracks(const QVector<TrackInfo>& tracks, const QVector<bool>& stemsReady) {
+    if (tracks.size() != stemsReady.size()) return false;
+    auto db = QSqlDatabase::database("stemboks-library");
+    if (!db.isOpen() || !db.transaction()) return false;
+    for (qsizetype i = 0; i < tracks.size(); ++i) if (upsertTrack(db, tracks[i], stemsReady[i]) < 0) {
+        db.rollback(); return false;
+    }
+    if (!db.commit()) { qWarning() << db.lastError(); db.rollback(); return false; }
+    emit Library::instance().changed();
+    return true;
 }
 void Library::setAnalysis(qint64 id, double bpm, double firstBeat, const QString& key) {
     if (execute(m_db, "UPDATE tracks SET bpm=?,first_beat=?,key=? WHERE id=?", {bpm, firstBeat, key, id})) {
@@ -251,10 +275,13 @@ void Library::saveGrid(const QString& path, double bpm, double beat) {
 }
 int Library::scanDirectory(const QString& dir) {
     if (!open()) return 0;
-    QStringList paths, extensions = Decoder::supportedExtensions();
+    QStringList paths, extensions = Decoder::supportedExtensions() + QStringList{"stem.m4a", "mp4"};
     for (auto& extension : extensions) { extension = extension.toLower(); if (extension.startsWith("*.")) extension.remove(0, 2); else if (extension.startsWith('.')) extension.remove(0, 1); }
     QDirIterator it(dir, QDir::Files | QDir::Readable, QDirIterator::Subdirectories);
-    while (it.hasNext()) { const QString path = it.next(); if (extensions.contains(QFileInfo(path).suffix().toLower())) paths.append(path); }
+    while (it.hasNext()) {
+        const QString path = it.next(), name = QFileInfo(path).fileName();
+        if (std::any_of(extensions.cbegin(), extensions.cend(), [&](const QString& ext) { return name.endsWith('.' + ext, Qt::CaseInsensitive); })) paths.append(path);
+    }
     int added = 0, done = 0;
     emit scanProgress(0, paths.size());
     for (const auto& path : paths) {

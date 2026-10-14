@@ -70,11 +70,12 @@ AnalysisResult Analysis::analyze(const AudioBuffer& audio) {
     for (int c = 0; c < 2; ++c) { low[c].setLowpass(sr, 200); upper[c].setLowpass(sr, 4000); }
     const int hop = std::max(1, sr/200);
     std::vector<double> envelope(size_t((frames+hop-1)/hop), 0.0);
-    double sumSquares = 0;
+    double sumSquares = 0, samplePeak = 0;
     for (qint64 i = 0; i < frames; ++i) {
         auto& peak = result.waveform.peaks[i*100/sr];
         for (int c = 0; c < 2; ++c) {
             float x = sample(audio.interleaved[2*i+c]);
+            samplePeak = std::max(samplePeak, double(std::abs(x)));
             float lo = low[c].process(x), hiLow = upper[c].process(x);
             peak.low = std::max(peak.low, std::min(1.0f, std::abs(lo)));
             peak.mid = std::max(peak.mid, std::min(1.0f, std::abs(hiLow-lo)));
@@ -87,7 +88,9 @@ AnalysisResult Analysis::analyze(const AudioBuffer& audio) {
         }
     }
     double rms = std::sqrt(sumSquares/(2*frames));
-    result.loudnessGainDb = rms > 1e-9 ? std::clamp(-14.0 - 20*std::log10(rms), -24.0, 24.0) : 0;
+    result.loudnessGainDb = rms > 1e-9 ? std::min(
+        std::clamp(-14.0 - 20*std::log10(rms), -24.0, 12.0),
+        -20*std::log10(samplePeak)-1) : 0;
     double previous = 0;
     for (double& value : envelope) {
         double energy = std::sqrt(value/(2*hop));
@@ -144,14 +147,18 @@ AnalysisResult Analysis::analyze(const AudioBuffer& audio) {
     for (int i = 0; i < window; ++i) hann[i] = 0.5-0.5*std::cos(2*pi*i/(window-1));
     for (int bin = 1; bin < window/2; ++bin) {
         double frequency = double(bin)*sr/window;
-        if (frequency >= 50 && frequency <= 5000) pitch[bin] = (int(std::lround(69+12*std::log2(frequency/440)))%12+12)%12;
+        if (frequency >= 80 && frequency <= 4000) pitch[bin] = (int(std::lround(69+12*std::log2(frequency/440)))%12+12)%12;
     }
     for (qint64 start = 0; start+window <= frames; start += window) {
         for (int i = 0; i < window; ++i)
             bins[i] = 0.5*(sample(audio.interleaved[2*(start+i)])+sample(audio.interleaved[2*(start+i)+1]))*hann[i];
         dft(bins);
+        double frameMax = 0;
         for (int bin = 1; bin < window/2; ++bin)
-            if (pitch[bin] >= 0) chroma[pitch[bin]] += std::abs(bins[bin]);
+            if (pitch[bin] >= 0) frameMax = std::max(frameMax, std::abs(bins[bin]));
+        for (int bin = 1; bin < window/2; ++bin)
+            if (pitch[bin] >= 0 && std::abs(bins[bin]) >= frameMax*0.1)
+                chroma[pitch[bin]] += std::norm(bins[bin]);
     }
     static const double major[] = {6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88};
     static const double minor[] = {6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17};

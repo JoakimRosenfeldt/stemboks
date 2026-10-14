@@ -4,8 +4,17 @@
 #include <limits>
 
 void TimeStretcher::reset() { m_overlap.clear(); m_overlapLen = 0; m_expectedPos = -1; }
-double TimeStretcher::process(const float* src, qint64 srcFrames, double position, double rate, float* out, int frames) {
+double TimeStretcher::process(const float* src, qint64 srcFrames, double position, double rate, float* out, int frames, int* offsets) {
+    return processImpl(src, srcFrames, position, rate, out, frames, offsets, nullptr);
+}
+double TimeStretcher::processWithOffset(const float* src, qint64 srcFrames, double position, double rate,
+                                      float* out, int frames, const int* offsets) {
+    return processImpl(src, srcFrames, position, rate, out, frames, nullptr, offsets);
+}
+double TimeStretcher::processImpl(const float* src, qint64 srcFrames, double position, double rate,
+                                float* out, int frames, int* chosenOffsets, const int* forcedOffsets) {
     if (!out || frames <= 0) return position;
+    if (chosenOffsets) std::fill_n(chosenOffsets, frames, 0);
     if (!src || srcFrames <= 0 || !std::isfinite(position) || !std::isfinite(rate) || rate <= 0) {
         std::fill_n(out, size_t(frames)*2, 0.0f); reset(); return std::isfinite(position) ? position : 0;
     }
@@ -18,7 +27,8 @@ double TimeStretcher::process(const float* src, qint64 srcFrames, double positio
         if (m_overlapLen == 0) {
             qint64 nominal = qint64(position), chosen = nominal;
             bool previous = !m_overlap.isEmpty();
-            if (previous && nominal < srcFrames) {
+            if (forcedOffsets) chosen += forcedOffsets[written];
+            else if (previous && nominal < srcFrames) {
                 double best = -std::numeric_limits<double>::infinity();
                 qint64 begin = std::max<qint64>(0, nominal-search), end = std::min(srcFrames-1, nominal+search);
                 for (qint64 candidate = begin; candidate <= end; candidate += 2) {
@@ -32,6 +42,7 @@ double TimeStretcher::process(const float* src, qint64 srcFrames, double positio
                     if (score > best) { best = score; chosen = candidate; }
                 }
             }
+            if (chosenOffsets) chosenOffsets[written] = int(chosen - nominal);
             if (!previous) m_overlap.resize(2*kWin);
             for (int i = 0; i < hop; ++i) {
                 float fade = float(i)/float(hop-1);

@@ -13,7 +13,11 @@
 #include <QTimer>
 #include <QThread>
 #include <RtMidi.h>
+#if __has_include(<hidapi/hidapi.h>)
 #include <hidapi/hidapi.h>
+#else
+#include <hidapi.h>
+#endif
 #include <algorithm>
 #include <cmath>
 #include <memory>
@@ -68,6 +72,7 @@ struct ControllerManager::Impl {
         int mapping;
         std::unique_ptr<RtMidiIn> input;
         std::unique_ptr<RtMidiOut> output;
+        QHash<int, double> lastSent;
     };
     struct HidPort { hid_device* device; int mapping; QByteArray previous; };
     QVector<ControllerMapping> mappings;
@@ -75,7 +80,9 @@ struct ControllerManager::Impl {
     QVector<HidPort> hid;
     int dispatchMapping = -1;
     QThread* hidThread = nullptr;
+    QTimer* feedbackTimer = nullptr;
     ~Impl() {
+        delete feedbackTimer;
         if (hidThread) { hidThread->quit(); hidThread->wait(); delete hidThread; }
         for (auto& p : midi) if (p->input) p->input->cancelCallback();
         for (const auto& p : hid) hid_close(p.device);
@@ -141,7 +148,7 @@ bool ControllerManager::parseMapping(const QString& text, ControllerMapping* out
         } else if (keyword == "effect-selection") {
             b.kind = MappingBinding::EffectSelection; b.effectName = t[3]; b.offOnRelease = t.contains("off-on-release");
             if (!source(t, sourceIndex(t), &b)) return fail("Invalid effect source");
-            if (!QRegularExpression("^fx\\.unit\\.[1-4]\\.slot\\.[1-4]$").match(b.control).hasMatch()) return fail("Invalid effect unit/slot");
+            if (!QRegularExpression("^fx\\.unit\\.[1-2]\\.(name|slot\\.[1-4])$").match(b.control).hasMatch()) return fail("Invalid effect unit");
         } else {
             b.kind = MappingBinding::Input;
             if (t.size() < 11 || t[5] != "linear") return fail("Invalid input fields");
@@ -200,7 +207,7 @@ void ControllerManager::start() {
     m_impl = new Impl;
     connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this, [this] { delete m_impl; m_impl = nullptr; m_active.clear(); m_connected.clear(); });
     const QString appDir = QCoreApplication::applicationDirPath();
-    const QStringList directories = {appDir + "/mappings", appDir + "/../share/stemboks/mappings", QDir::current().filePath("res/mappings"), AppSettings::dataDir() + "/mappings"};
+    const QStringList directories = {QStringLiteral(":/mappings"), appDir + "/mappings", appDir + "/../share/stemboks/mappings", QDir::current().filePath("res/mappings"), AppSettings::dataDir() + "/mappings"};
     QHash<QString, QString> selected;
     QFile selection(AppSettings::dataDir() + "/mappings-actifs.conf");
     if (selection.open(QIODevice::ReadOnly)) for (const auto& line : QString::fromUtf8(selection.readAll()).split('\n')) {
@@ -216,7 +223,7 @@ void ControllerManager::start() {
         else qWarning() << file.fileName() << error;
     }
     std::stable_sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
-        return a.modified == b.modified ? a.priority < b.priority : a.modified < b.modified;
+        return a.priority == b.priority ? a.modified < b.modified : a.priority < b.priority;
     });
     for (const auto& candidate : candidates) {
         auto it = std::find_if(m_impl->mappings.begin(), m_impl->mappings.end(), [&](const ControllerMapping& m) { return m.id == candidate.mapping.id; });
@@ -315,21 +322,35 @@ void ControllerManager::start() {
         });
         m_impl->hidThread->start();
     }
-    connect(&ControlRegistry::instance(), &ControlRegistry::changed, this, [this](const QString& control, double value) {
-        if (!m_impl || !std::isfinite(value)) return;
+    m_impl->feedbackTimer = new QTimer(this);
+    m_impl->feedbackTimer->setInterval(50);
+    connect(m_impl->feedbackTimer, &QTimer::timeout, this, [this] {
+        if (!m_impl) return;
         for (const auto& port : m_impl->midi) {
             if (!port->output || !port->output->isPortOpen()) continue;
-            for (const auto& b : m_active[port->mapping].bindings) {
-                if (b.kind != MappingBinding::Output || b.control != control || (!b.modifier.isEmpty() && !m_modifiers.value(b.modifier))) continue;
+            const auto& bindings = m_active[port->mapping].bindings;
+            for (int i = 0; i < bindings.size(); ++i) {
+                const auto& b = bindings[i];
+                if (b.kind != MappingBinding::Output) continue;
+                if (!b.modifier.isEmpty()) {
+                    const bool inverted = b.modifier.startsWith('!');
+                    if (m_modifiers.value(inverted ? b.modifier.mid(1) : b.modifier) == inverted) {
+                        port->lastSent.remove(i); continue;
+                    }
+                }
+                const double value = ControlRegistry::instance().get(b.control);
+                if (!std::isfinite(value) || (port->lastSent.contains(i) && port->lastSent.value(i) == value)) continue;
                 const double fraction = b.mode == MappingBinding::Toggle ? (value >= b.inMin && value <= b.inMax ? 1.0 : 0.0)
                     : b.inMax != b.inMin ? std::clamp((value - b.inMin) / (b.inMax - b.inMin), 0.0, 1.0) : 0;
                 const int velocity = std::clamp(int(std::lround(b.outMin + fraction * (b.outMax - b.outMin))), 0, 127);
                 const unsigned char status = (b.source == MappingBinding::MidiCC ? 0xb0 : velocity ? 0x90 : 0x80) | b.channel;
                 std::vector<unsigned char> message{status, static_cast<unsigned char>(b.number), static_cast<unsigned char>(velocity)};
-                try { port->output->sendMessage(&message); } catch (const RtMidiError& e) { qWarning() << e.what(); }
+                try { port->output->sendMessage(&message); port->lastSent[i] = value; }
+                catch (const RtMidiError& e) { qWarning() << e.what(); }
             }
         }
     });
+    m_impl->feedbackTimer->start();
     emit devicesChanged();
 }
 
@@ -363,12 +384,14 @@ void ControllerManager::applyBinding(const MappingBinding& b, double raw, bool p
     }
     switch (b.mode) {
     case MappingBinding::Absolute: {
+        if (b.source == MappingBinding::MidiNote && !pressed) break;
         const double fraction = std::clamp((raw - b.inMin) / (b.inMax - b.inMin), 0.0, 1.0);
         registry.set(b.control, b.outMin + fraction * (b.outMax - b.outMin)); break;
     }
     case MappingBinding::Relative: {
         // Pioneer binary-offset encoders idle at 64, clockwise at 65, counterclockwise at 63.
-        double step = raw - 64;
+        if (b.source == MappingBinding::MidiNote && !pressed) break;
+        double step = b.source == MappingBinding::MidiNote ? 1 : raw - 64;
         if (b.rawLine.contains("twos-complement")) step = raw >= 64 ? raw - 128 : raw;
         registry.set(b.control, registry.get(b.control) + step * (b.outMax - b.outMin)); break;
     }

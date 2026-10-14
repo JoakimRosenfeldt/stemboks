@@ -15,9 +15,19 @@ public:
     void setSampleRate(int sr) { m_sr = sr; }
     void setEffect(const QString& name);       // resets state
     QString effect() const { return m_name; }
-    void setEnabled(bool on) { m_enabled = on; }
+    void setEnabled(bool on) {
+        if (on && !m_enabled) {
+            m_latchedBpm = m_bpm; m_rollCaptured = false; m_rollPos = 0; m_gatePhase = 0;
+        }
+        m_enabled = on;
+    }
     bool enabled() const { return m_enabled; }
-    void setParameter(double v) { m_param = v; }   // meaning depends on effect (beat fraction or 0..1)
+    void setParameter(double v) {
+        if (v != m_param) {
+            m_latchedBpm = m_bpm; m_rollCaptured = false; m_rollPos = 0; m_gatePhase = 0;
+        }
+        m_param = v;
+    }   // meaning depends on effect (beat fraction or 0..1)
     void setMix(double v) { m_mix = v; }           // 0..1 wet
     void setBpm(double bpm) { m_bpm = bpm; }
     void process(float* interleaved, int frames);  // in-place
@@ -25,6 +35,7 @@ private:
     QString m_name = QStringLiteral("echo");
     bool m_enabled = false;
     double m_param = 0.5, m_mix = 1.0, m_bpm = 124.0;
+    double m_latchedBpm = 124.0;
     int m_sr = 44100;
     QVector<float> m_delay; int m_delayPos = 0;
     QVector<float> m_roll;  int m_rollPos = 0; bool m_rollCaptured = false;

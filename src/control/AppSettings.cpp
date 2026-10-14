@@ -2,6 +2,7 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QFile>
+#include <QSaveFile>
 #include <QJsonDocument>
 
 AppSettings& AppSettings::instance() { static AppSettings s; return s; }
@@ -36,9 +37,10 @@ void AppSettings::save() const {
     root[QStringLiteral("format")] = QStringLiteral("stembox-substrat-usersettings");
     root[QStringLiteral("version")] = 1;
     root[QStringLiteral("groupes")] = m_groups;
-    QFile f(settingsPath());
-    if (f.open(QIODevice::WriteOnly))
-        f.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+    QSaveFile f(settingsPath());
+    if (!f.open(QIODevice::WriteOnly)) return;
+    const QByteArray data = QJsonDocument(root).toJson(QJsonDocument::Indented);
+    if (f.write(data) == data.size()) f.commit();
 }
 
 QString AppSettings::get(const QString& group, const QString& key, const QString& def) const {

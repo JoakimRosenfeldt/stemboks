@@ -37,7 +37,10 @@ struct DeckState {
     QString hotcueMode = QStringLiteral("app.hotcueMode");
     QString backspin = QStringLiteral("app.backspin");
     QString colorName;
+    QString prefix;
     std::array<float, blockFrames * 2> scratch{};
+    std::array<float, blockFrames * 4> pitchBuffer{}, stemBuffer{};
+    std::array<int, blockFrames * 2> spliceOffsets{};
     std::array<double, 3> eqValues{{100, 100, 100}};
     int eqRate = 0;
     bool iso = true;
@@ -89,7 +92,7 @@ float sample(const AudioBuffer& b, double position, int channel) {
                  + b.interleaved[j * 2 + channel] * fraction);
 }
 void prepareColorFx(EffectSlot& fx, const QString& name, int rate, float* scratch) {
-    fx.setSampleRate(rate); fx.setEnabled(true); fx.setMix(0); fx.setParameter(8); fx.setBpm(60);
+    fx.setSampleRate(rate); fx.setBpm(60); fx.setEnabled(true); fx.setMix(0); fx.setParameter(8);
     // Reserve the maximum delay and roll storage through the existing DSP API.
     for (const QString& warm : {QStringLiteral("echo"), QStringLiteral("roll"), QStringLiteral("reverb")}) {
         fx.setEffect(warm); fx.process(scratch, 1);
@@ -101,6 +104,7 @@ void prepareColorFx(EffectSlot& fx, const QString& name, int rate, float* scratc
 
 Deck::Deck(int index, QObject* parent) : QObject(parent), m_index(index) {
     auto& s = state(index);
+    s.prefix = QStringLiteral("deck.%1.").arg(index + 1);
     auto& registry = ControlRegistry::instance();
     for (int i = 0; i < Count; ++i) {
         s.keys[i] = key(controlNames[i]);
@@ -232,7 +236,7 @@ void Deck::cuePress() {
     if (!t || !t->audio || m_cueHeld) return;
     m_cueHeld = true;
     put(s, Cue, 1);
-    if (m_playing) { seekSec(t->cueSec); s.cuePreview = false; }
+    if (m_playing) { seekSec(t->cueSec); pause(); s.cuePreview = false; }
     else if (std::abs(positionSec() - t->cueSec) > 1.0 / m_sampleRate) {
         t->cueSec = snap(s, *t, positionSec());
         seekSec(t->cueSec);
@@ -273,9 +277,94 @@ void Deck::scratchTo(double sec) {
     seekSec(sec);
 }
 
+void Deck::triggerPad(int pad, bool pressed) {
+    auto& registry = ControlRegistry::instance();
+    const QString& prefix = state(m_index).prefix;
+    const auto t = track();
+    auto pulse = [&](const QString& name) { registry.set(name, 0); registry.set(name, 1); };
+    const double mode = registry.get(prefix + "pads.mode");
+    if (mode == 0) {
+        const QString base = prefix + QString("hotcue.%1.").arg(pad + 1);
+        if (!pressed) registry.set(base + "activate", 0);
+        else if (t && t->hotcues[pad].positionSec < 0) pulse(base + "set");
+        else registry.set(base + "activate", 1);
+    } else if (mode == 1 && pressed) {
+        const double sizes[] = {.5, 1, 2, 4, 8, 16, 32};
+        if (pad == 7) pulse(prefix + (t && t->loopInSec >= 0 && t->loopOutSec < 0 ? "loop.setOut" : "loop.setIn"));
+        else {
+            const bool same = registry.getBool(prefix + "loop.enabled") && registry.get(prefix + "loop.size") == sizes[pad];
+            registry.set(prefix + "loop.size", sizes[pad]);
+            if (same) registry.set(prefix + "loop.enabled", 0);
+            else pulse(prefix + "loop.active");
+        }
+    } else if (mode == 2 && pressed) {
+        registry.set(prefix + "jump.size", double(4 << (pad / 2)));
+        pulse(prefix + (pad % 2 ? "jump.forward" : "jump.backward"));
+    } else if (mode == 3 && pressed) {
+        const int shifts[] = {-7, -5, -3, -1, 1, 3, 5, 7};
+        registry.set(prefix + "key.shift", registry.get(prefix + "key.shift") == shifts[pad] ? 0 : shifts[pad]);
+    } else if (mode == 4 && pressed) {
+        const QStringList names{"vocals", "drums", "bass", "other"};
+        if (pad < 4) registry.toggle(prefix + "stems." + names[pad] + ".mute");
+        else {
+            const int solo = pad - 4;
+            bool alreadySolo = !registry.getBool(prefix + "stems." + names[solo] + ".mute");
+            for (int i = 0; i < kNumStems; ++i)
+                if (i != solo && !registry.getBool(prefix + "stems." + names[i] + ".mute")) alreadySolo = false;
+            for (int i = 0; i < kNumStems; ++i)
+                registry.set(prefix + "stems." + names[i] + ".mute", !alreadySolo && i != solo);
+        }
+    } else if (mode == 5 && pressed) {
+        registry.toggle(QString("sampler.%1.play").arg(pad + 1));
+    } else if (mode == 6) {
+        auto& settings = AppSettings::instance();
+        const QString group = QStringLiteral("[Stembox]");
+        const int unitIndex = m_index % 2 + 1;
+        const QString unit = QString("fx.unit.%1.").arg(unitIndex);
+        const bool toggle = settings.getInt(group, "padfx_type") == 1;
+        if (!pressed) { if (!toggle) registry.set(unit + "enabled", 0); return; }
+        const QString effect = settings.get(group, QString("padfx_name_%1").arg(pad + 1), "ECHO")
+            .toLower().remove(' ').remove('-');
+        if (effect == "vinylbrake") { pulse(prefix + "transport.brake"); return; }
+        registry.setString(unit + "name", effect); registry.setString(prefix + "fx.name", effect);
+        registry.set(unit + "parameter", settings.getDouble(group, QString("padfx_bval_%1").arg(pad + 1), .5));
+        registry.set(unit + "mix", 1); registry.set(prefix + QString("fx.unit%1").arg(unitIndex), 1);
+        registry.set(prefix + "fx.enabled", 1);
+        if (toggle) registry.toggle(unit + "enabled"); else registry.set(unit + "enabled", 1);
+    }
+}
+
 void Deck::onControlChanged(const QString& name, double value) {
     auto& s = state(m_index);
+    if (!name.startsWith(s.prefix) && name != s.invert && name != s.eqCurve && name != s.autoGain
+        && name != s.hotcueMode && name != s.backspin) return;
+    auto& registry = ControlRegistry::instance();
+    const QString control = name.mid(s.prefix.size());
+    const char* alias = nullptr;
+    if (control == "cue.button") alias = "transport.cue";
+    else if (control == "tempo.keyLock") alias = "key.lock";
+    else if (control == "scratch.wheelTouch") alias = "jog.touch";
+    else if (control == "colorFx.amount") alias = "colorfx.amount";
+    if (alias) { registry.set(key(alias), value); return; }
+    if (control.startsWith("pads.cell.") && control.endsWith(".press")) {
+        bool ok = false;
+        const int pad = control.mid(10, control.size() - 16).toInt(&ok) - 1;
+        if (ok && pad >= 0 && pad < kNumHotcues) triggerPad(pad, value != 0);
+        return;
+    }
+    if (control == "loop.activeLoop") {
+        if (value) {
+            if (get(s, LoopEnabled)) registry.set(s.keys[LoopEnabled], 0);
+            else { registry.set(s.keys[LoopActive], 0); registry.set(s.keys[LoopActive], 1); }
+        }
+        return;
+    }
     std::lock_guard<std::recursive_mutex> lock(s.mutex);
+    if (control == "scratch.wheelMove") {
+        put(s, Move, get(s, Move) + value);
+        registry.setSilent(name, 0);
+        return;
+    }
     if (name == s.keys[Playing]) { if (value) play(); else pause(); return; }
     if (name == s.keys[Cue]) { if (value) cuePress(); else cueRelease(); return; }
     if (name == s.keys[Position]) { seekSec(value * durationSec()); return; }
@@ -290,11 +379,23 @@ void Deck::onControlChanged(const QString& name, double value) {
     if (!t || !t->audio) return;
     const double bpm = bpmOf(*t);
     const double beat = 60 / (bpm > 0 ? bpm : 120);
-    if (name == s.keys[LoopIn] && value) {
+    if (control == "loop.reloop" && value) {
+        if (t->loopInSec >= 0 && t->loopOutSec > t->loopInSec) {
+            seekSec(t->loopInSec); put(s, LoopEnabled, 1);
+        }
+        registry.setSilent(name, 0);
+    } else if ((control == "jump.fourForward" || control == "jump.fourBack") && value) {
+        seekSec(snap(s, *t, positionSec() + (control == "jump.fourForward" ? 4 : -4) * beat));
+        registry.setSilent(name, 0);
+    } else if (name == s.keys[LoopEnabled] && value) {
+        if (t->loopInSec >= 0 && t->loopOutSec > t->loopInSec && positionSec() >= t->loopOutSec)
+            seekSec(t->loopInSec);
+    } else if (name == s.keys[LoopIn] && value) {
         t->loopInSec = snap(s, *t, positionSec()); put(s, LoopIn, 0);
     } else if (name == s.keys[LoopOut] && value) {
         t->loopOutSec = snap(s, *t, positionSec());
         put(s, LoopEnabled, t->loopOutSec > t->loopInSec && t->loopInSec >= 0); put(s, LoopOut, 0);
+        if (get(s, LoopEnabled) && positionSec() >= t->loopOutSec) seekSec(t->loopInSec);
     } else if (name == s.keys[LoopActive] && value) {
         t->loopInSec = snap(s, *t, positionSec());
         t->loopOutSec = std::min(durationSec(), t->loopInSec + std::max(.03125, get(s, LoopSize, 4)) * beat);
@@ -311,7 +412,6 @@ void Deck::onControlChanged(const QString& name, double value) {
                      * std::max(.03125, get(s, JumpSize, 4)) * beat));
         ControlRegistry::instance().setSilent(name, 0);
     }
-    auto& registry = ControlRegistry::instance();
     for (int i = 0; i < kNumHotcues; ++i) {
         if (name == s.clear[i] && value) {
             t->hotcues[i].positionSec = -1; registry.setSilent(s.present[i], 0); registry.setSilent(name, 0);
@@ -364,8 +464,8 @@ void Deck::render(float* out, int frames, int sampleRate) {
     const double sourceRate = double(m_sampleRate) / sampleRate;
     const double bend = std::clamp(get(s, Bend), -.5, .5);
     if (move == 0 && !touch) put(s, Bend, bend * std::exp(-double(frames) / sampleRate / .08));
-    const double rate = tempo * sourceRate * (1 + bend)
-        * std::pow(2.0, std::clamp(get(s, KeyShift), -48.0, 48.0) / 12);
+    const double rate = tempo * sourceRate * (1 + bend);
+    const double pitchFactor = std::pow(2.0, std::clamp(get(s, KeyShift), -12.0, 12.0) / 12);
     const bool stretch = get(s, KeyLock) || get(s, KeyShift) != 0;
     const bool iso = registry.get(s.eqCurve) == 0;
     const double eq[] = {get(s, EqLow), get(s, EqMid), get(s, EqHigh)};
@@ -413,16 +513,29 @@ void Deck::render(float* out, int frames, int sampleRate) {
         int count = std::min(blockFrames, frames - offset);
         const double step = scrubbing ? scrubStep : rate * (reverse ? -1 : 1) * (m_braking ? m_brakeFactor : 1);
         const double boundary = step < 0 ? (loop ? loopIn : 0) : (loop ? loopOut : end);
-        if (step != 0) count = std::min(count, std::max(1, int(std::ceil(std::abs((boundary - position) / step)))));
+        if (step != 0) count = int(std::min<double>(count, std::max(1.0, std::ceil(std::abs((boundary - position) / step)))));
         float* dst = out + offset * 2;
         if (stretch && !scrubbing && !reverse && !touch && !s.scratching && !m_braking && step > 0) {
+            const int intermediateFrames = std::max(1, int(std::ceil(count * pitchFactor)));
+            m_stretcher.process(t->audio->interleaved.constData(), t->audio->frames(), position,
+                                step / pitchFactor, s.pitchBuffer.data(), intermediateFrames, s.spliceOffsets.data());
             if (stems) {
+                std::fill_n(s.pitchBuffer.data(), intermediateFrames * 2, 0.0f);
                 for (int i = 0; i < kNumStems; ++i) {
-                    m_stemStretcher[i].process(t->stems[i]->interleaved.constData(), t->stems[i]->frames(),
-                                              position, step, s.scratch.data(), count);
-                    for (int f = 0; f < count * 2; ++f) dst[f] += float(s.scratch[f] * stemGain[i]);
+                    m_stemStretcher[i].processWithOffset(t->stems[i]->interleaved.constData(), t->stems[i]->frames(),
+                        position, step / pitchFactor, s.stemBuffer.data(), intermediateFrames, s.spliceOffsets.data());
+                    for (int f = 0; f < intermediateFrames * 2; ++f)
+                        s.pitchBuffer[f] += float(s.stemBuffer[f] * stemGain[i]);
                 }
-            } else m_stretcher.process(t->audio->interleaved.constData(), t->audio->frames(), position, step, dst, count);
+            }
+            for (int f = 0; f < count; ++f) {
+                const double at = f * pitchFactor;
+                const int a = std::min(int(at), intermediateFrames - 1), b = std::min(a + 1, intermediateFrames - 1);
+                const double fraction = at - a;
+                for (int ch = 0; ch < 2; ++ch)
+                    dst[f * 2 + ch] = float((1 - fraction) * s.pitchBuffer[a * 2 + ch]
+                                           + fraction * s.pitchBuffer[b * 2 + ch]);
+            }
             position += step * count;
         } else {
             for (int f = 0; f < count; ++f) {

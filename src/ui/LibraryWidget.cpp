@@ -4,6 +4,7 @@
 #include "../engine/Decoder.h"
 #include <QDirIterator>
 #include "../stems/StemManager.h"
+#include "../library/RekordboxUsb.h"
 #include <QtConcurrent>
 #include <QFutureWatcher>
 #include <QPainter>
@@ -24,6 +25,13 @@
 #include <QTimer>
 #include <QSignalBlocker>
 #include <QDateTime>
+#include <QMessageBox>
+#include <algorithm>
+
+bool importScannedLibraryTracks(const QVector<TrackInfo>& tracks, const QVector<bool>& stemsReady);
+namespace {
+struct ScannedTracks { QVector<TrackInfo> tracks; QVector<bool> stemsReady; };
+}
 
 LibraryWidget::LibraryWidget(QWidget* parent) : QWidget(parent) {
     setObjectName("LibraryContainer");
@@ -57,29 +65,75 @@ void LibraryWidget::buildSource() {
     il->addWidget(Ui::label("Date: " + QDate::currentDate().toString(Qt::ISODate), "StemboxAboutLine"));
     il->addStretch();
     auto* open = Ui::button("Open library"); il->addWidget(open);
-    connect(open, &QPushButton::clicked, this, [this] {
+    connect(open, &QPushButton::clicked, this, [this, open] {
         const auto* item = m_sourceList->currentItem(); m_sourceRoot = item ? item->data(Qt::UserRole).toString() : QString();
+        if (!m_sourceRoot.isEmpty() && RekordboxUsb::isRekordboxUsb(m_sourceRoot)
+            && !m_rekordboxImported.contains(m_sourceRoot)) {
+            m_rekordboxImported.insert(m_sourceRoot);
+            const QString root = m_sourceRoot;
+            open->setEnabled(false); open->setText("Reading rekordbox USB...");
+            auto* watcher = new QFutureWatcher<RekordboxUsb::Library>(this);
+            connect(watcher, &QFutureWatcher<RekordboxUsb::Library>::finished, this, [this, open, watcher, root] {
+                const auto rb = watcher->result(); watcher->deleteLater();
+                open->setEnabled(true); open->setText("Open library");
+                QVector<TrackInfo> tracks; QVector<bool> stems;
+                QHash<int, QString> pathByRow;
+                for (auto it = rb.rowIdToTrack.constBegin(); it != rb.rowIdToTrack.constEnd(); ++it)
+                    if (it.value() >= 0 && it.value() < rb.tracks.size())
+                        pathByRow[it.key()] = RekordboxUsb::trackAbsolutePath(root, rb.tracks[it.value()]);
+                for (const auto& t : rb.tracks) {
+                    TrackInfo info;
+                    info.path = RekordboxUsb::trackAbsolutePath(root, t);
+                    if (info.path.isEmpty()) continue;
+                    info.title = t.title; info.artist = t.artist; info.album = t.album; info.genre = t.genre;
+                    info.durationSec = t.durationSec; info.bpm = t.bpm; info.keyText = t.keyText;
+                    tracks.append(info); stems.append(StemManager::stemsExistFor(info.path));
+                }
+                if (!tracks.isEmpty()) {
+                    importScannedLibraryTracks(tracks, stems);
+                    auto& lib = Library::instance();
+                    for (const auto& p : rb.playlists) {
+                        const qint64 pid = lib.createPlaylist("RB: " + p.name);
+                        if (pid < 0) continue;
+                        for (int rowId : p.trackRowIds) {
+                            const QString path = pathByRow.value(rowId);
+                            const qint64 tid = path.isEmpty() ? -1 : lib.trackIdForPath(path);
+                            if (tid >= 0) lib.addToPlaylist(pid, tid);
+                        }
+                    }
+                }
+                refreshSource(); refreshGroups();
+                showPage(Browse);
+            });
+            watcher->setFuture(QtConcurrent::run([root] {
+                RekordboxUsb::Library lib; RekordboxUsb::parse(root, &lib); return lib;
+            }));
+            return;
+        }
         showPage(Browse);
     });
     auto* add = Ui::button("Add folder"); il->addWidget(add);
     connect(add, &QPushButton::clicked, this, [this, add] {
         const QString dir = QFileDialog::getExistingDirectory(this, "Add music folder"); if (dir.isEmpty()) return;
         add->setEnabled(false); add->setText("Scanning...");
-        auto* watcher = new QFutureWatcher<QVector<TrackInfo>>(this);
-        connect(watcher, &QFutureWatcher<QVector<TrackInfo>>::finished, this, [this, add, watcher] {
-            {
-                const QSignalBlocker block(&Library::instance());
-                for (const auto& info : watcher->result()) Library::instance().addOrUpdateTrack(info);
-            }
-            emit Library::instance().changed();
+        auto* watcher = new QFutureWatcher<ScannedTracks>(this);
+        connect(watcher, &QFutureWatcher<ScannedTracks>::finished, this, [this, add, watcher] {
+            const auto scanned = watcher->result();
+            if (!importScannedLibraryTracks(scanned.tracks, scanned.stemsReady))
+                QMessageBox::warning(this, "Library scan", "Could not save scanned tracks to the library.");
             add->setText("Add folder"); add->setEnabled(true); watcher->deleteLater(); refreshSource(); refreshGroups();
         });
         watcher->setFuture(QtConcurrent::run([dir] {
-            QVector<TrackInfo> tracks; auto extensions = Decoder::supportedExtensions();
+            ScannedTracks scanned; auto extensions = Decoder::supportedExtensions() + QStringList{"stem.m4a", "mp4"};
             for (auto& extension : extensions) { extension = extension.toLower(); extension.remove("*."); if (extension.startsWith('.')) extension.remove(0, 1); }
             QDirIterator files(dir, QDir::Files | QDir::Readable, QDirIterator::Subdirectories);
-            while (files.hasNext()) { const auto path = files.next(); if (!extensions.contains(QFileInfo(path).suffix().toLower())) continue; auto info = Decoder::readTags(path); info.path = path; tracks.append(info); }
-            return tracks;
+            while (files.hasNext()) {
+                const auto path = files.next(), name = QFileInfo(path).fileName();
+                if (!std::any_of(extensions.cbegin(), extensions.cend(), [&](const QString& ext) { return name.endsWith('.' + ext, Qt::CaseInsensitive); })) continue;
+                auto info = Decoder::readTags(path); info.path = path; info.artwork = QImage();
+                scanned.tracks.append(info); scanned.stemsReady.append(StemManager::stemsExistFor(path));
+            }
+            return scanned;
         }));
     });
     row->addWidget(inspector); root->addLayout(row, 1); m_stack->addWidget(page);
@@ -106,7 +160,9 @@ void LibraryWidget::refreshSource() {
         empty->setFlags(Qt::NoItemFlags);
     }
     for (const auto& volume : volumes) {
-        auto* item = new QListWidgetItem(QIcon(usbTile), QStorageInfo(volume).displayName(), m_sourceList);
+        QString label = QStorageInfo(volume).displayName();
+        if (RekordboxUsb::isRekordboxUsb(volume)) label += "  (rekordbox)";
+        auto* item = new QListWidgetItem(QIcon(usbTile), label, m_sourceList);
         item->setData(Qt::UserRole, volume); item->setSizeHint(QSize(0, 66));
     }
     auto* library = new QListWidgetItem("STEMBOKS LIBRARY   ›", m_sourceList); library->setSizeHint(QSize(0, 66));

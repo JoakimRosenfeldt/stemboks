@@ -17,4 +17,13 @@
     <file alias="clap.wav">drums/clap.wav</file>
     <file alias="hihat.wav">drums/hihat.wav</file>
   </qresource>
+  <qresource prefix="/mappings">
+    <file alias="Stemboks-DDJ-1000.mapping">mappings/Stemboks-DDJ-1000.mapping</file>
+    <file alias="Stemboks-DDJ-400.mapping">mappings/Stemboks-DDJ-400.mapping</file>
+    <file alias="Stemboks-DDJ-800.mapping">mappings/Stemboks-DDJ-800.mapping</file>
+    <file alias="Stemboks-DDJ-FLX10.mapping">mappings/Stemboks-DDJ-FLX10.mapping</file>
+    <file alias="Stemboks-DDJ-FLX4.mapping">mappings/Stemboks-DDJ-FLX4.mapping</file>
+    <file alias="Stemboks-DDJ-FLX6.mapping">mappings/Stemboks-DDJ-FLX6.mapping</file>
+    <file alias="Stemboks-DDJ-GRV6.mapping">mappings/Stemboks-DDJ-GRV6.mapping</file>
+  </qresource>
 </RCC>

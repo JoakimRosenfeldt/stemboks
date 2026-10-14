@@ -47,6 +47,9 @@ if(NOT hidapi_FOUND)
   FetchContent_Declare(hidapi
     GIT_REPOSITORY https://github.com/libusb/hidapi.git
     GIT_TAG hidapi-0.14.0)
+  if(UNIX AND NOT APPLE)
+    set(HIDAPI_WITH_LIBUSB OFF CACHE BOOL "" FORCE)
+  endif()
   FetchContent_MakeAvailable(hidapi)
 endif()
 
@@ -75,6 +78,7 @@ set(SOURCES
   src/engine/Deck.cpp
   src/engine/AudioEngine.cpp
   src/library/Library.cpp
+  src/library/RekordboxUsb.cpp
   src/stems/StemManager.cpp
   src/controllers/ControllerManager.cpp
   src/ui/MainWindow.cpp
@@ -108,6 +112,8 @@ if(TARGET hidapi::hidapi)
   target_link_libraries(stemboks PRIVATE hidapi::hidapi)
 elseif(TARGET hidapi)
   target_link_libraries(stemboks PRIVATE hidapi)
+else()
+  message(FATAL_ERROR "hidapi did not provide a supported target")
 endif()
 if(HAVE_ONNX)
   target_include_directories(stemboks PRIVATE ${ONNX_INCLUDE} ${ONNX_INCLUDE}/..)

@@ -23,11 +23,14 @@
 namespace {
 constexpr int blockFrames = 512;
 constexpr size_t headCapacity = 32768;
+constexpr size_t headMaxFill = 8192;
 constexpr double pi = 3.14159265358979323846;
 struct EngineState {
     std::recursive_mutex mutex;
     ma_context context{};
     bool contextReady = false;
+    int mainChannels = 2, mainPair = 0, headChannels = 2, headPair = 0;
+    bool sharedHead = false;
     std::array<QString, kNumDecks> volume, pfl;
     std::array<std::array<QString, 2>, kNumDecks> sends;
     std::array<QString, kNumSamplers> samplerPlay, samplerGain;
@@ -64,7 +67,7 @@ void closeDevice(void*& pointer) {
     pointer = nullptr;
 }
 void prepareBeatFx(EffectSlot& fx, const QString& name, int rate, float* scratch) {
-    fx.setSampleRate(rate); fx.setEnabled(true); fx.setMix(0); fx.setParameter(8); fx.setBpm(60);
+    fx.setSampleRate(rate); fx.setBpm(60); fx.setEnabled(true); fx.setMix(0); fx.setParameter(8);
     for (const QString& warm : {QStringLiteral("echo"), QStringLiteral("roll"), QStringLiteral("reverb")}) {
         fx.setEffect(warm); fx.process(scratch, 1);
     }
@@ -177,11 +180,24 @@ bool AudioEngine::start() {
         if (infos[i].isDefault) { effectiveMain = &infos[i].id; break; }
     const bool separateHead = !headName.isEmpty() && headName != QStringLiteral("---") && headId
         && headId != effectiveMain;
-    auto open = [&](const ma_device_id* id, ma_device_data_proc callback, void*& target) {
+    auto pairStart = [&](const QString& setting, int fallback) {
+        const QString value = settings.get(group, setting).trimmed();
+        const QStringList pair = value.split('-');
+        if (pair.size() != 2) return fallback;
+        bool firstOk = false, secondOk = false;
+        const int first = pair[0].toInt(&firstOk), second = pair[1].toInt(&secondOk);
+        return firstOk && secondOk && first >= 1 && first <= 3 && second == first + 1 ? first - 1 : fallback;
+    };
+    s.mainPair = pairStart(QStringLiteral("sound_main_channels"), 0);
+    s.headPair = pairStart(QStringLiteral("sound_headphones_channels"), separateHead ? 0 : 2);
+    s.sharedHead = !separateHead;
+    s.mainChannels = std::max(s.mainPair + 2, s.sharedHead ? s.headPair + 2 : 2);
+    s.headChannels = s.headPair + 2;
+    auto open = [&](const ma_device_id* id, int channels, ma_device_data_proc callback, void*& target) {
         ma_device_config config = ma_device_config_init(ma_device_type_playback);
         config.playback.pDeviceID = id;
         config.playback.format = ma_format_f32;
-        config.playback.channels = 2;
+        config.playback.channels = ma_uint32(channels);
         config.sampleRate = ma_uint32(m_sampleRate);
         config.periodSizeInFrames = ma_uint32(bufferFrames);
         config.dataCallback = callback;
@@ -191,7 +207,8 @@ bool AudioEngine::start() {
         target = device.release();
         return true;
     };
-    if (!open(mainId, mainCallback, m_mainDevice) || (separateHead && !open(headId, headCallback, m_headDevice))) {
+    if (!open(mainId, s.mainChannels, mainCallback, m_mainDevice)
+        || (separateHead && !open(headId, s.headChannels, headCallback, m_headDevice))) {
         stop(); return false;
     }
     for (int u = 0; u < 2; ++u)
@@ -288,9 +305,10 @@ void AudioEngine::renderMix(float* mainOut, float* headOut, int frames) {
     }
     for (int u = 0; u < 2; ++u) {
         auto& fx = m_fxUnit[u];
+        fx.setBpm(bpm > 0 ? bpm : 120);
         fx.setEnabled(registry.getBool(s.fxEnabled[u]));
         fx.setMix(std::clamp(registry.get(s.fxMix[u], .5), 0.0, 1.0));
-        fx.setParameter(registry.get(s.fxParameter[u], .5)); fx.setBpm(bpm > 0 ? bpm : 120);
+        fx.setParameter(registry.get(s.fxParameter[u], .5));
         if (!fx.enabled()) continue;
         std::copy_n(s.fxBuffers[u].data(), frames * 2, s.fxDry[u].data());
         fx.process(s.fxBuffers[u].data(), frames);
@@ -342,7 +360,12 @@ void AudioEngine::renderMix(float* mainOut, float* headOut, int frames) {
     float peak[2]{};
     for (int f = 0; f < frames; ++f) for (int ch = 0; ch < 2; ++ch) {
         const int i = f * 2 + ch;
-        if (limiting) mainOut[i] = std::tanh(mainOut[i] * m_limiterGain);
+        if (limiting) {
+            const float sample = mainOut[i] * m_limiterGain;
+            const float magnitude = std::abs(sample);
+            mainOut[i] = magnitude <= .9f ? sample
+                : std::copysign(.9f + .1f * std::tanh((magnitude - .9f) / .1f), sample);
+        }
         headOut[i] = float((headOut[i] * (1 - mix) + mainOut[i] * mix) * headphone);
         peak[ch] = std::max(peak[ch], std::abs(mainOut[i]));
     }
@@ -354,10 +377,14 @@ void AudioEngine::renderMix(float* mainOut, float* headOut, int frames) {
 void AudioEngine::processMain(float* out, int frames) {
     if (!out || frames <= 0) return;
     auto& s = state();
+    std::fill_n(out, frames * s.mainChannels, 0.f);
     for (int offset = 0; offset < frames; offset += blockFrames) {
         const int count = std::min(blockFrames, frames - offset);
         renderMix(m_mixBuf.data(), m_headBuf.data(), count);
-        std::copy_n(m_mixBuf.constData(), count * 2, out + offset * 2);
+        for (int f = 0; f < count; ++f) for (int ch = 0; ch < 2; ++ch) {
+            out[(offset + f) * s.mainChannels + s.mainPair + ch] += m_mixBuf[f * 2 + ch];
+            if (s.sharedHead) out[(offset + f) * s.mainChannels + s.headPair + ch] += m_headBuf[f * 2 + ch];
+        }
         if (!s.headEnabled.load(std::memory_order_relaxed)) continue;
         const size_t read = s.headRead.load(std::memory_order_acquire);
         size_t write = s.headWrite.load(std::memory_order_relaxed);
@@ -374,13 +401,15 @@ void AudioEngine::processMain(float* out, int frames) {
 void AudioEngine::processHead(float* out, int frames) {
     if (!out || frames <= 0) return;
     auto& s = state();
-    std::fill_n(out, frames * 2, 0.f);
-    const size_t read = s.headRead.load(std::memory_order_relaxed);
+    std::fill_n(out, frames * s.headChannels, 0.f);
+    size_t read = s.headRead.load(std::memory_order_relaxed);
     const size_t write = s.headWrite.load(std::memory_order_acquire);
+    if (write - read > headMaxFill) read = write - headMaxFill;
     const size_t count = std::min(size_t(frames), write - read);
     for (size_t f = 0; f < count; ++f) {
         const size_t index = (read + f) % headCapacity;
-        out[f * 2] = s.headQueue[index * 2]; out[f * 2 + 1] = s.headQueue[index * 2 + 1];
+        out[f * s.headChannels + s.headPair] = s.headQueue[index * 2];
+        out[f * s.headChannels + s.headPair + 1] = s.headQueue[index * 2 + 1];
     }
     s.headRead.store(read + count, std::memory_order_release);
 }

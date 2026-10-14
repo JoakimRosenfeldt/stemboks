@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
-        run: brew install qt ffmpeg hidapi pkg-config
+        run: brew install qt ffmpeg hidapi pkg-config onnxruntime
       - name: Configure
         run: cmake -S . -B build -DCMAKE_PREFIX_PATH="$(brew --prefix qt);$(brew --prefix)"
       - name: Build
@@ -33,7 +33,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qt6-base-dev qt6-svg-dev libqt6sql6-sqlite \
             libavformat-dev libavcodec-dev libavutil-dev libswresample-dev \
-            libhidapi-dev libasound2-dev libpulse-dev libudev-dev pkg-config
+            libhidapi-dev libasound2-dev libpulse-dev libudev-dev libusb-1.0-0-dev libxkbcommon-dev pkg-config
+      - name: Install optional ONNX Runtime
+        run: sudo apt-get install -y libonnxruntime-dev || true
       - name: Configure
         run: cmake -S . -B build
       - name: Build

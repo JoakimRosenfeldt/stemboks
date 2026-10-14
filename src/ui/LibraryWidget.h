@@ -1,6 +1,7 @@
 #pragma once
 #include "../library/Library.h"
 #include <QWidget>
+#include <QSet>
 
 class QStackedWidget; class QListWidget; class QTableWidget; class QLabel; class QLineEdit;
 
@@ -37,6 +38,7 @@ private:
     QString m_category;         // Playlist/Artist/Album/Key/Folder/History/Matching
     int m_fontStep = 1, m_targetDeck = 0;
     QString m_sourceRoot;
+    QSet<QString> m_rekordboxImported;
     QWidget* m_tagRemove;
     QVector<class QPushButton*> m_targets;
     void buildSource(); void buildBrowse(); void buildSearch(); void buildKeyboard(bool azerty);

@@ -1,5 +1,4 @@
 #include "Decoder.h"
-#include <QFile>
 #include <algorithm>
 #include <climits>
 #include <cmath>
@@ -31,7 +30,7 @@ struct Input {
         avcodec_free_context(&codec); avformat_close_input(&format);
     }
     int open(const QString& path) {
-        int ret = avformat_open_input(&format, QFile::encodeName(path).constData(), nullptr, nullptr);
+        int ret = avformat_open_input(&format, path.toUtf8().constData(), nullptr, nullptr);
         return ret < 0 ? ret : avformat_find_stream_info(format, nullptr);
     }
 };
@@ -108,10 +107,13 @@ AudioBufferPtr Decoder::decodeStream(const QString& path, int streamIndex, int r
             if (ret >= 0) ret = receive();
         }
         av_packet_unref(in.packet);
-        if (ret < 0) return fail(ret);
+        if (ret < 0 && ret != AVERROR_INVALIDDATA && ret != AVERROR(EAGAIN)) return fail(ret);
     }
     if (ret != AVERROR_EOF) return fail(ret);
-    if ((ret = avcodec_send_packet(in.codec, nullptr)) < 0 || (ret = receive()) < 0) return fail(ret);
+    ret = avcodec_send_packet(in.codec, nullptr);
+    if (ret < 0 && ret != AVERROR_INVALIDDATA && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) return fail(ret);
+    ret = receive();
+    if (ret < 0 && ret != AVERROR_INVALIDDATA) return fail(ret);
     do { ret = convert(nullptr); } while (ret > 0);
     if (ret < 0) return fail(ret);
     return audio->isEmpty() ? fail(AVERROR_INVALIDDATA) : audio;
@@ -223,7 +225,7 @@ bool Recorder::open(const QString& path, int rate, bool mp3, int depth) {
     if (!encoder) return false;
     auto& s = *m_impl;
     auto fail = [&]() { s.release(); return false; };
-    QByteArray filename = QFile::encodeName(path);
+    QByteArray filename = path.toUtf8();
     if (avformat_alloc_output_context2(&s.format, nullptr, mp3 ? "mp3" : "wav", filename.constData()) < 0 || !s.format) return fail();
     s.codec = avcodec_alloc_context3(encoder); s.stream = avformat_new_stream(s.format, nullptr);
     s.frame = av_frame_alloc(); s.packet = av_packet_alloc();

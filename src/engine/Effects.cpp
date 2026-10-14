@@ -62,7 +62,8 @@ void EffectSlot::process(float* audio, int frames) {
     else if (m_name=="noise") fx=Noise; else if (m_name=="filter") fx=Filter; else return;
     double param=std::isfinite(m_param) ? m_param : 0.5, amount=std::clamp(param,0.0,1.0);
     double mix=std::isfinite(m_mix) ? std::clamp(m_mix,0.0,1.0) : 0;
-    double beat=60/(std::isfinite(m_bpm) && m_bpm>0 ? m_bpm : 124);
+    double bpm=(fx==Roll || fx==Stretch) ? m_latchedBpm : m_bpm;
+    double beat=60/(std::isfinite(bpm) && bpm>0 ? bpm : 124);
     double fraction=std::clamp(param,1.0/64,8.0), period=std::max(1.0/m_sr,beat*fraction);
     bool delayFx=fx==Echo || fx==Lowcut || fx==Multitap || fx==Spiral || fx==Dub || fx==Jet || fx==Flanger || fx==Pitch;
     int delayFrames=std::max(4,m_sr*8);
@@ -110,6 +111,7 @@ void EffectSlot::process(float* audio, int frames) {
                     m_lp[c]=clean(m_lp[c]+a*(wet-m_lp[c])); wet=m_lp[c]; feedback=wet;
                 }
                 m_delay[2*m_delayPos+c]=clean(std::tanh(x+(fx==Dub ? 0.72 : 0.55)*feedback));
+                wet += x;
                 break;
             }
             case Reverb: {
