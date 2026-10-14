@@ -9,6 +9,10 @@
 #include <QSlider>
 #include <QFileInfo>
 #include <QSignalBlocker>
+#include <QDialog>
+#include <QDoubleSpinBox>
+#include <QMouseEvent>
+#include "../library/Library.h"
 
 DeckWidget::DeckWidget(Deck* deck, QWidget* parent) : QWidget(parent), m_deck(deck), m_prefix(QString("deck.%1.").arg(deck->index() + 1)) {
     setObjectName("StemboxDeck"); setMinimumWidth(0);
@@ -50,6 +54,8 @@ DeckWidget::DeckWidget(Deck* deck, QWidget* parent) : QWidget(parent), m_deck(de
     auto* tempo = new QSlider(Qt::Vertical); tempo->setRange(-1000, 1000); tempo->setFixedWidth(18); tempo->setToolTip("Tempo fader");
     connect(tempo, &QSlider::valueChanged, this, [this](int v) { ControlRegistry::instance().set(m_prefix + "tempo.fader", v / 1000.0); }); ml->addWidget(tempo);
     m_bpmBig = Ui::label("0.0", "StemboxBpmBig"); ml->addWidget(m_bpmBig); root->addWidget(main);
+    m_bpm->installEventFilter(this); m_bpm->setToolTip("Double-click: edit beatgrid");
+    m_bpmBig->installEventFilter(this); m_bpmBig->setToolTip("Double-click: edit beatgrid");
     auto* status = new QWidget; status->setFixedHeight(26); auto* sl = new QHBoxLayout(status); sl->setContentsMargins(0, 0, 0, 0); sl->setSpacing(4);
     m_mt = Ui::button("MT", "DeckMtBtn"); m_mt->setCheckable(true);
     m_quantize = Ui::button("QUANTIZE", "DeckQuantBtn"); m_quantize->setCheckable(true);
@@ -189,4 +195,74 @@ void DeckWidget::refresh() {
         else { auto& s = AppSettings::instance(); text = s.get("[Stembox]", QString("padfx_name_%1").arg(i + 1), "ECHO") + " " + s.get("[Stembox]", QString("padfx_vlabel_%1").arg(i + 1)); }
         m_pads[i]->setText(text); Ui::property(m_pads[i], "set", set);
     }
+}
+
+bool DeckWidget::eventFilter(QObject* obj, QEvent* event) {
+    if ((obj == m_bpm || obj == m_bpmBig) && event->type() == QEvent::MouseButtonDblClick) {
+        openGridEdit();
+        return true;
+    }
+    return QWidget::eventFilter(obj, event);
+}
+
+// Beatgrid editor (stembox_gridedit.xml): BPM fine-tune, halve/double,
+// shift the grid, or drop the first beat at the playhead. Persists via
+// Library::saveGrid (DB + grilles-locales.tsv, like the original).
+void DeckWidget::openGridEdit() {
+    auto track = m_deck->track();
+    if (!track) return;
+    QDialog dlg(this);
+    dlg.setWindowTitle(QStringLiteral("Beatgrid — Player %1").arg(m_deck->index() + 1));
+    auto* root = new QVBoxLayout(&dlg);
+    auto* bpm = new QDoubleSpinBox;
+    bpm->setRange(40.0, 250.0); bpm->setDecimals(2); bpm->setSingleStep(0.01);
+    bpm->setValue(track->analysis.bpm > 0 ? track->analysis.bpm : track->info.bpm);
+    auto* bpmRow = new QHBoxLayout;
+    bpmRow->addWidget(Ui::label("BPM", "StemboxPrefsCaption")); bpmRow->addWidget(bpm, 1);
+    auto* halve = Ui::button("÷2"); auto* dbl = Ui::button("×2");
+    connect(halve, &QPushButton::clicked, bpm, [bpm] { bpm->setValue(bpm->value() / 2); });
+    connect(dbl, &QPushButton::clicked, bpm, [bpm] { bpm->setValue(bpm->value() * 2); });
+    bpmRow->addWidget(halve); bpmRow->addWidget(dbl);
+    root->addLayout(bpmRow);
+
+    auto* firstBeat = new QDoubleSpinBox;
+    firstBeat->setRange(-10.0, 60.0); firstBeat->setDecimals(3); firstBeat->setSingleStep(0.001);
+    firstBeat->setValue(track->analysis.firstBeatSec);
+    auto* fbRow = new QHBoxLayout;
+    fbRow->addWidget(Ui::label("First beat (s)", "StemboxPrefsCaption")); fbRow->addWidget(firstBeat, 1);
+    root->addLayout(fbRow);
+
+    auto* shiftRow = new QHBoxLayout;
+    const auto shiftBtn = [&](const QString& text, double seconds) {
+        auto* b = Ui::button(text); shiftRow->addWidget(b);
+        connect(b, &QPushButton::clicked, firstBeat, [firstBeat, seconds] { firstBeat->setValue(firstBeat->value() + seconds); });
+    };
+    shiftBtn("−1 beat", 0); shiftBtn("−10 ms", -0.010); shiftBtn("+10 ms", 0.010); shiftBtn("+1 beat", 0);
+    // beat-sized shifts depend on the BPM being edited; recompute on click
+    connect(qobject_cast<QPushButton*>(shiftRow->itemAt(0)->widget()), &QPushButton::clicked, firstBeat,
+            [firstBeat, bpm] { if (bpm->value() > 0) firstBeat->setValue(firstBeat->value() - 60.0 / bpm->value()); });
+    connect(qobject_cast<QPushButton*>(shiftRow->itemAt(3)->widget()), &QPushButton::clicked, firstBeat,
+            [firstBeat, bpm] { if (bpm->value() > 0) firstBeat->setValue(firstBeat->value() + 60.0 / bpm->value()); });
+    root->addLayout(shiftRow);
+
+    auto* here = Ui::button("Set first beat at playhead");
+    connect(here, &QPushButton::clicked, firstBeat, [this, firstBeat, bpm] {
+        double pos = m_deck->positionSec();
+        if (bpm->value() > 0) { double beat = 60.0 / bpm->value(); pos = std::fmod(pos, beat); }
+        firstBeat->setValue(pos);
+    });
+    root->addWidget(here);
+
+    auto* buttons = new QHBoxLayout; buttons->addStretch();
+    auto* cancel = Ui::button("Cancel"); auto* ok = Ui::button("Save grid");
+    connect(cancel, &QPushButton::clicked, &dlg, &QDialog::reject);
+    connect(ok, &QPushButton::clicked, &dlg, &QDialog::accept);
+    buttons->addWidget(cancel); buttons->addWidget(ok);
+    root->addLayout(buttons);
+
+    if (dlg.exec() != QDialog::Accepted) return;
+    track->analysis.bpm = bpm->value();
+    track->analysis.firstBeatSec = firstBeat->value();
+    Library::instance().saveGrid(track->info.path, bpm->value(), firstBeat->value());
+    ControlRegistry::instance().set(m_prefix + "grid.changed", 1);
 }

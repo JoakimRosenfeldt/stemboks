@@ -27,4 +27,6 @@ private:
     QString m_prefix;
     void buildPads();
     void triggerPad(int pad, bool release);
+    void openGridEdit();
+    bool eventFilter(QObject* obj, QEvent* event) override;
 };
