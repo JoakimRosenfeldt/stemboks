@@ -41,11 +41,14 @@ jobs:
       - name: Smoke test (offscreen)
         run: QT_QPA_PLATFORM=offscreen timeout 10 ./build/stemboks --help || test $? -eq 124
       - uses: actions/upload-artifact@v4
-        with: { name: stemboks-linux-${{ matrix.arch }}, path: build/stemboks }
+        with:
+          name: stemboks-linux-${{ matrix.arch }}
+          path: build/stemboks
   windows:
     runs-on: windows-latest
     defaults:
-      run: { shell: msys2 {0} }
+      run:
+        shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
       - uses: msys2/setup-msys2@v2
