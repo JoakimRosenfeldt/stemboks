@@ -213,6 +213,13 @@ Stems separate(const AudioBuffer& audio, const QString& model, const Progress& p
     if (outputCount < 1 || outputCount > 2) throw std::runtime_error("Model mismatch: expected one stem output or spectral and temporal outputs");
     const int times = (chunkFrames + hop - 1) / hop;
     const std::vector<int64_t> inputShape{1, 4, bins, times}, waveShape{1, 2, chunkFrames};
+    // Waveform exports (e.g. stems-hdemucs-mmi-v1.onnx: input "mix" [1,2,343980],
+    // STFT inside the graph) take raw audio and return temporal stems directly.
+    bool waveformMode = false;
+    if (inputCount >= 1) {
+        const auto first = session.GetInputTypeInfo(0).GetTensorTypeAndShapeInfo().GetShape();
+        waveformMode = first.size() == 3 && matches(first, waveShape);
+    }
     Ort::AllocatorWithDefaultOptions allocator;
     std::vector<Ort::AllocatedStringPtr> inputNames, outputNames;
     std::vector<const char*> inputs, outputs;
@@ -220,8 +227,9 @@ Stems separate(const AudioBuffer& audio, const QString& model, const Progress& p
         const auto type = session.GetInputTypeInfo(i);
         if (type.GetONNXType() != ONNX_TYPE_TENSOR) throw std::runtime_error("Model input mismatch: expected float32 tensors");
         const auto info = type.GetTensorTypeAndShapeInfo();
-        if (info.GetElementType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT || !matches(info.GetShape(), i == 0 ? inputShape : waveShape))
-            throw std::runtime_error(i == 0 ? "Model input 0 mismatch: expected float32 [1,4,2048,336] spectrogram"
+        const auto& wanted = waveformMode ? waveShape : (i == 0 ? inputShape : waveShape);
+        if (info.GetElementType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT || !matches(info.GetShape(), wanted))
+            throw std::runtime_error(i == 0 ? "Model input 0 mismatch: expected float32 [1,4,2048,336] spectrogram or [1,2,343980] waveform"
                                           : "Model input 1 mismatch: expected float32 [1,2,343980] waveform");
         inputNames.push_back(session.GetInputNameAllocated(i, allocator)); inputs.push_back(inputNames.back().get());
     }
@@ -239,11 +247,18 @@ Stems separate(const AudioBuffer& audio, const QString& model, const Progress& p
         std::vector<float> chunk(size_t(chunkFrames) * 2, 0);
         const int count = int(std::min<qint64>(chunkFrames, audio.frames() - start));
         std::copy_n(audio.interleaved.constData() + start * 2, size_t(count) * 2, chunk.begin());
-        auto spec = stft(chunk, times, hann);
         std::vector<Ort::Value> tensors;
-        tensors.push_back(Ort::Value::CreateTensor<float>(memory, spec.data(), spec.size(), inputShape.data(), inputShape.size()));
-        std::vector<float> wave;
-        if (inputCount == 2) {
+        std::vector<float> spec, wave;
+        if (waveformMode) {
+            wave.resize(size_t(chunkFrames) * 2);
+            for (int channel = 0; channel < 2; ++channel) for (int frame = 0; frame < chunkFrames; ++frame)
+                wave[size_t(channel) * chunkFrames + frame] = chunk[size_t(frame) * 2 + channel];
+            tensors.push_back(Ort::Value::CreateTensor<float>(memory, wave.data(), wave.size(), waveShape.data(), waveShape.size()));
+        } else {
+            spec = stft(chunk, times, hann);
+            tensors.push_back(Ort::Value::CreateTensor<float>(memory, spec.data(), spec.size(), inputShape.data(), inputShape.size()));
+        }
+        if (!waveformMode && inputCount == 2) {
             wave.resize(size_t(chunkFrames) * 2);
             for (int channel = 0; channel < 2; ++channel) for (int frame = 0; frame < chunkFrames; ++frame)
                 wave[size_t(channel) * chunkFrames + frame] = chunk[size_t(frame) * 2 + channel];
