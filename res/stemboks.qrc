@@ -1,0 +1,20 @@
+<RCC>
+  <qresource prefix="/fonts">
+    <file alias="OpenSans-Regular.ttf">fonts/OpenSans-Regular.ttf</file>
+    <file alias="OpenSans-Bold.ttf">fonts/OpenSans-Bold.ttf</file>
+    <file alias="OpenSans-SemiBold.ttf">fonts/OpenSans-SemiBold.ttf</file>
+  </qresource>
+  <qresource prefix="/theme">
+    <file alias="style-stemboks.qss">theme/style-stemboks.qss</file>
+    <file alias="style-stemboks-light.qss">theme/style-stemboks-light.qss</file>
+  </qresource>
+  <qresource prefix="/icons">
+    <file alias="stemboks_logo.svg">icons/stemboks_logo.svg</file>
+  </qresource>
+  <qresource prefix="/drums">
+    <file alias="kick.wav">drums/kick.wav</file>
+    <file alias="snare.wav">drums/snare.wav</file>
+    <file alias="clap.wav">drums/clap.wav</file>
+    <file alias="hihat.wav">drums/hihat.wav</file>
+  </qresource>
+</RCC>

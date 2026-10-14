@@ -4,9 +4,9 @@ Static inventory of the installed bundle, inspected 2026-10-14. `Info.plist` rep
 
 ## Evidence and notation
 
-The source root is `/Applications/Stembox.app/Contents/Resources`. All 28 XML files in `src/interface-stembox/dispositions`, `src/substrat/dispositions/stembox-racine.xml`, the 45,566-byte QSS, every SVG under the requested theme directory, all six bundled fonts, and the requested user settings were inspected.
+The source root is `/Applications/Stembox.app/Contents/Resources`. No top-level window width, height, or minimum screen resolution is declared by this root. All 28 XML files in `src/interface-stembox/dispositions`, `src/substrat/dispositions/stembox-racine.xml`, the 45,566-byte QSS, every SVG under the requested theme directory, all six bundled fonts, and the requested user settings were inspected.
 
-`N` means deck 1 through 4. `P` means pad 1 through 8. `[ChannelN],key` is a concrete control family. Braced names in the declaration appendix preserve template variables, with `{group}` expanded to `[Channel{chanNum}]`. XML `f` means a fixed logical pixel dimension, `me` an expanding dimension, and `max` an upper limit. These are declarations, not measured physical screen pixels. QSS dimensions retain their exact `px` units. `left` denotes an explicit `LeftButton` action. `state` denotes a connection without a button action or bound property.
+`N` means deck 1 through 4. `P` means pad 1 through 8. `[ChannelN],key` is a concrete control family. Braced names in the declaration appendix preserve template variables, with `{group}` expanded to `[Channel{chanNum}]`. XML `f` means a fixed logical pixel dimension, `me` an expanding dimension, and `max` an upper limit, and `min` a minimum/content-sized dimension. These are declarations, not measured physical screen pixels. QSS dimensions retain their exact `px` units. `left` denotes an explicit `LeftButton` action. `state` denotes a connection without a button action or bound property.
 
 XML elements and settings are observed evidence. Behavioral statements taken from shipped comments are identified below. Custom C++ widgets expose only their skin parameters here. This inventory does not establish their internal control bindings, rendered colors, or live behavior.
 
@@ -55,8 +55,8 @@ The center corridor is `40f`, formed from `StemboxLargeCenterBar` `10f`, `Stembo
 | Control or display | ObjectName and geometry | ConfigKey / exact skin parameter |
 | --- | --- | --- |
 | Stem availability / EQ-to-stems | `StemboxDeckNote`, `18f,18f` | `[ChannelN],stem_count` double NOT chooses note versus stems; `[ChannelN],eq_stems` chooses white versus rose icon |
-| Original BPM / grid diagnostic | `StemboxDeckStatVal`, `0me,26f`; hit area `StemboxBpmDiagHit`, `58f,46f` | Readout `Mode=filebpm`; diagnostic action `[Stembox],grid_diagN` |
-| Original key / duration | `StemboxDeckStatVal`, `0me,26f` | Key binds `[ChannelN],key` with `file_key` property; TIME readout `Mode=duration`; empty key displays `#` |
+| Original BPM / grid diagnostic | `StemboxDeckStatVal`, `0me,26f`; hit area `StemboxBpmDiagHit`, `58f,46f` | Readout `Mode=filebpm`; diagnostic action `[Stembox],grid_diag` |
+| Original key / duration | `StemboxDeckStatVal`, `0me,26f` | Key binds `[ChannelN],key` and sets `UseFileKey=true`; comment names the original `file_key`; TIME readout `Mode=duration`; empty key displays `#` |
 | Grid panel toggle | `StemboxGridEditBtn`, `24f,24f` | Action `[Stembox],grid_editN`; enabled by `[ChannelN],track_loaded` |
 | Waveform preview style | `StemboxWfThin` / `StemboxGridPreview`, `0me,64f` | Persistent `[Stembox],preview_style`, 0 waveform / 1 grid; preview channel `otherNum`; zoom group is host deck |
 | Waveform hold zoom | `StemboxWfBig`, expanding | `StemboxZoomHold=true`; comments specify hold left half to zoom out, right half to zoom in. Thin preview omits this flag |
@@ -66,7 +66,7 @@ The center corridor is `40f`, formed from `StemboxLargeCenterBar` `10f`, `Stembo
 | Headphone CUE | `StemboxCueBtn`, `46f,22f` | Left action and state `[ChannelN],pfl`. This is headphone monitoring |
 | SYNC indicator | `StemboxSyncBtn`, `46f,22f` | Display-only `[ChannelN],stembox_follower`; no click action or `sync_enabled` binding |
 | Time / alert caption | `StemboxRemain`, `0me,47f`; `StemboxBarCap`, `0me,11f` | `Mode=time`; custom `StemboxTimeCap` takes deck group. Comments name NO FX PART SELECT and VINYL MODE ON/OFF alerts |
-| Slip indicator | `StemboxSlipTag`, `40f,17f` | `[ChannelN],stembox_slip_mode`; compact variant uses `slip_visibleN` and `slip_alphaN` |
+| Slip indicator | `StemboxSlipTag`, `40f,17f` | `[ChannelN],stembox_slip_mode`; compact variant uses the same key on an enclosing `44f,63f` group so inactive SLIP reserves no width |
 | Tempo range | `StemboxRateRangeBtn`, `56f,62f` | Custom widget takes `Deck=N`; comment names `[ChannelN],rateRange`, cycles ±6, ±10, ±16, WIDE ±100% |
 | BPM state | `StemboxBpmBox` / `StemboxBpmBoxIdle`, `120f,65f` | `deck_liveN`; BPM caption switches to BEAT SYNC on `[ChannelN],stembox_follower`. Later comment removes orange MASTER display |
 | Master tempo | `StemboxToggle`, `60f,20f` | Left action and state `[ChannelN],keylock` |
@@ -75,7 +75,7 @@ The center corridor is `40f`, formed from `StemboxLargeCenterBar` `10f`, `Stembo
 | Effect indication | `StemboxFxBlock`, `54f,48f` | Custom `StemboxFx`, `Deck=N`, `ColorFxOnDecks=1,3`. Left decks show Color FX; comments describe other decks showing shared Beat FX |
 ### Beat-grid editor
 
-`StemboxGridEditPanel` is `154f,287f`, visible on `[Stembox],grid_editN`. The Large layout reserves `StemboxGridEditColumn`, `174f,0me`, gated by `[Stembox],grille_ouverte`. Split places the editor beside the entire waveform column. The panel has TEMPO, POSITION, and 1ST TIME sections. Exact click keys are `[ChannelN],stembox_grid_bpm_down`, `stembox_grid_bpm_up`, `beats_translate_earlier`, `beats_translate_later`, `stembox_grid_first_earlier`, and `stembox_grid_first_later`. Tempo and position buttons set `StemboxRepeat=true`. The first-beat buttons use `StemboxGridEditKeyRed` and `StemboxHoverText=#000000`. The appendix retains every declared row and button size.
+`StemboxGridEditPanel` is `154f,287f`, visible on `[Stembox],grid_editN`. The Large layout reserves `StemboxGridEditColumn`, `160f,0me`, gated by `[Stembox],grille_ouverte`. Split places the editor beside the entire waveform column. The panel has TEMPO, POSITION, and 1ST TIME sections. Exact click keys are `[ChannelN],stembox_grid_bpm_down`, `stembox_grid_bpm_up`, `beats_translate_earlier`, `beats_translate_later`, `stembox_grid_first_earlier`, and `stembox_grid_first_later`. Tempo and position buttons set `StemboxRepeat=true`. The first-beat buttons use `StemboxGridEditKeyRed` and `StemboxHoverText=#000000`. The appendix retains every declared row and button size.
 
 ### Waveform colors
 
@@ -89,7 +89,7 @@ Mixer preferences are present in the saved JSON. `[Mixer]` has automatic gain, m
 
 ## Library views
 
-`LibraryContainer` contains the optional left navigation and `StemboxMain`. One `LibrarySingleton` moves between full-width and Split docks. `StemboxMain` holds a header and content, with SOURCE, navigation lists, tracks, search, and STEMS MANAGER subtrees.
+`LibraryContainer` contains the optional left navigation and `StemboxMain`. One `LibrarySingleton` moves between full-width and Split docks. `StemboxMain` holds a header and content, with SOURCE, navigation lists, tracks, search, and STEMS MANAGER subtrees. An unnamed native `LibrarySidebar` supplies the SOURCE and category lists.
 
 - SOURCE: `[Stembox],at_root=1`. `StemboxSourceHeaderRow` is `0me,70f`, with SOURCE, diagnostic `?` `30f,30f` to `source_diag_open`, and STEMS MANAGER `190f,34f` to `stems_page_open`. `StemboxRootRow` holds device or source rows and the stats panel. Its exact device content is supplied by the library/controller, absent from the XML.
 - USB and statistics: `StemboxStatsPanel` is `360f,0me`; Split QSS overrides width to `270px`. Rows Source, Songs, Playlists, Date, Total, and Available are `46f` high with `1f` horizontal dividers. Available hides for `src_library_loaded`. `StemboxProgressRow`, `52f`, follows `src_analyzing` and shows Loading plus a `10f` progress track. `StemboxProgressFill` starts `0f,10f`. Eject drive acts on `src_eject_drive` and follows `src_device_loaded`. Open library shares `StemboxEjectBtn`, acts on `stembox_lib_manage`, and follows `src_library_loaded`.
@@ -145,7 +145,7 @@ Some QSS selectors have no corresponding current XML object, including `StemboxM
 
 ## Saved preferences
 
-`usersettings.json` has `format="stembox-substrat-usersettings"`, `version=1`, and six groups. All saved values below are JSON strings. They are this installation's values, not factory defaults or a complete settings schema. Missing preferences such as `keyboard_azerty`, `large_4decks`, sidebar hiding, or `font_state` have no persisted value in this snapshot.
+`usersettings.json` has `format="stembox-substrat-usersettings"`, `version=1`, and five groups. All saved values below are JSON strings. They are this installation's values, not factory defaults or a complete settings schema. Missing preferences such as `keyboard_azerty`, `large_4decks`, sidebar hiding, or `font_state` have no persisted value in this snapshot.
 
 ### Non-pad preferences
 | Exact ConfigKey | Saved string |
@@ -216,172 +216,173 @@ Each row expands to exact `[Stembox],padfx_name_SLOT`, `padfx_vlabel_SLOT`, `pad
 | 8 | `"TRANS"` | `"1/16"` | `"0"` | `"2"` | `"0.0625"` | `"0"` |
 ## Exact XML declaration index
 
-Each subsection names its source file. Rows cover every named widget and every unnamed control/custom widget. Anonymous layout spacers are omitted. All non-child properties, state text, and direct connections are retained. `currentpage` attributes and bindings on unnamed layout containers appear in the separate binding list. Repeated identical rows are collapsed. Dynamic properties drawn inside C++ widgets have no invented ConfigKeys.
+Each subsection names its source file. Rows cover every named widget and every unnamed control/custom widget. Anonymous layout spacers are omitted. All non-child properties, state text, and direct connections are retained. `currentpage` attributes and bindings on unnamed layout containers appear in the separate binding list. The Large library page additionally declares `trigger="[Stembox],lib_full"` and `on_hide_select="0"`. Repeated identical rows are collapsed. Dynamic properties drawn inside C++ widgets have no invented ConfigKeys.
 ### library.xml
 Source: [library.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/library.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `WidgetGroup` | `LibraryContainer` | `Layout=horizontal; SizePolicy=me,me` | — |
+| `WidgetGroup` | `LibraryContainer` | `Layout=horizontal; SizePolicy=me,me` | none |
 | `WidgetGroup` | `StemboxLeftNavToggleWrap` | `Layout=horizontal; SizePolicy=max,me` | `[Stembox],nav_hidden → visible NOT` |
 | `WidgetGroup` | `StemboxLeftNav` | `Layout=vertical; SizePolicy=max,me` | `[Stembox],at_root → visible NOT` |
 | `WidgetGroup` | `StemboxLeftNavInner` | `Layout=vertical; SizePolicy=f,me; Size=66f,0me` | `[Stembox],search_mode → visible NOT` |
-| `WidgetGroup` | `StemboxUsbCell` | `Layout=stacked; Size=0me,70f` | — |
+| `WidgetGroup` | `StemboxUsbCell` | `Layout=stacked; Size=0me,70f` | none |
 | `PushButton` | `StemboxUsbHit` | `Size=66f,70f; NumberStates=1` | `[Stembox],go_source → left` |
-| `WidgetGroup` | `StemboxUsbBox` | `Layout=vertical; Size=64f,66f` | — |
+| `WidgetGroup` | `StemboxUsbBox` | `Layout=vertical; Size=64f,66f` | none |
 | `PushButton` | `StemboxUsbGlyph` | `Size=13f,18f; NumberStates=1` | `[Stembox],go_source → left` |
-| `Label` | `StemboxUsbLabel` | `Text=USB; Size=0me,15f; Alignment=center` | — |
+| `Label` | `StemboxUsbLabel` | `Text=USB; Size=0me,15f; Alignment=center` | none |
 | `WidgetGroup` | `StemboxNavRightDividerWrap` | `SizePolicy=max,me` | `[Stembox],at_root → visible NOT` |
 | `WidgetGroup` | `StemboxNavRightDivider` | `Size=1f,0me` | `[Stembox],search_mode → visible NOT` |
-| `WidgetGroup` | `StemboxMain` | `Layout=vertical; SizePolicy=me,me` | — |
+| `WidgetGroup` | `StemboxMain` | `Layout=vertical; SizePolicy=me,me` | none |
 | `WidgetGroup` | `StemboxTopBar` | `Layout=horizontal; Size=0me,70f` | `[Stembox],at_root → visible NOT` |
 | `WidgetGroup` | `StemboxBackWrap` | `Layout=horizontal; Size=50f,40f; MaximumSize=50,40` | `[Stembox],back_hidden → visible NOT` |
 | `PushButton` | `StemboxBackButton` | `Size=34f,34f; MaximumSize=34,34; NumberStates=1` | `[Stembox],header_back → left` |
 | `WidgetStack` | `StemboxListIcon` | `Size=24f,24f; attributes={'currentpage': '[Stembox],nav_mode'}` | `[Stembox],at_root → visible NOT; [Stembox],search_mode → visible NOT` |
-| `PushButton` | `[unnamed]` | `Size=24f,24f; NumberStates=1` | — |
+| `PushButton` | `[unnamed]` | `Size=24f,24f; NumberStates=1` | none |
 | `Label` | `StemboxPlaylistTitle` | `Text=; Size=0me,34f; Alignment=left; Elide=right` | `[Stembox],at_root → visible NOT; [Stembox],search_mode → visible NOT` |
 | `WidgetGroup` | `StemboxHeaderSearch` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],search_mode → visible` |
-| `WidgetGroup` | `StemboxSearchBar` | `Layout=horizontal; Size=0me,46f` | — |
-| `SearchBox` | `[unnamed]` | — | — |
+| `WidgetGroup` | `StemboxSearchBar` | `Layout=horizontal; Size=0me,46f` | none |
+| `SearchBox` | `[unnamed]` | none | none |
+| `LibrarySidebar` | `[unnamed]` | none | none |
 | `WidgetGroup` | `StemboxPastSessionsGroup` | `SizePolicy=f,me; Layout=horizontal` | `[Stembox],nav_active_history → visible` |
 | `PushButton` | `StemboxPastSessionsBtn` | `Size=150f,34f; NumberStates=1; State.Text=PAST SESSIONS` | `[Stembox],go_past_sessions → left` |
 | `WidgetStack` | `StemboxFontSize` | `SizePolicy=f,me; Size=82f,70f; attributes={'currentpage': '[Stembox],font_state'}` | `[Stembox],at_root → visible NOT` |
 | `PushButton` | `[unnamed]` | `SizePolicy=me,me; NumberStates=1` | `[Stembox],font_cycle → left` |
-| `WidgetGroup` | `StemboxContent` | `Layout=vertical; SizePolicy=me,me` | — |
+| `WidgetGroup` | `StemboxContent` | `Layout=vertical; SizePolicy=me,me` | none |
 | `WidgetGroup` | `StemboxNavPane` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],stems_page → visible NOT` |
 | `WidgetGroup` | `StemboxSourceHeaderRow` | `Layout=horizontal; Size=0me,70f; SizePolicy=me,f` | `[Stembox],at_root → visible` |
-| `Label` | `StemboxSourceHeader` | `Text=SOURCE; SizePolicy=min,me; Alignment=left` | — |
+| `Label` | `StemboxSourceHeader` | `Text=SOURCE; SizePolicy=min,me; Alignment=left` | none |
 | `PushButton` | `StemboxSourceDiagBtn` | `Size=30f,30f; NumberStates=1; State.Text=?` | `[Stembox],source_diag_open → left` |
 | `PushButton` | `StemboxStemsManagerBtn` | `Size=190f,34f; NumberStates=1; State.Text=STEMS MANAGER` | `[Stembox],stems_page_open → left` |
-| `WidgetGroup` | `StemboxRootRow` | `Layout=horizontal; SizePolicy=me,me` | — |
-| `WidgetGroup` | `StemboxVDivider` | `Size=2f,0me` | — |
-| `StemboxLibraryPreview` | `StemboxLibraryPreview` | `SizePolicy=f,me; Size=760f,0me` | — |
+| `WidgetGroup` | `StemboxRootRow` | `Layout=horizontal; SizePolicy=me,me` | none |
+| `WidgetGroup` | `StemboxVDivider` | `Size=2f,0me` | none |
+| `StemboxLibraryPreview` | `StemboxLibraryPreview` | `SizePolicy=f,me; Size=760f,0me` | none |
 | `WidgetGroup` | `StemboxVDivider` | `Size=2f,0me` | `[Stembox],at_root → visible` |
 | `WidgetGroup` | `StemboxStatsPanel` | `Layout=vertical; Size=360f,0me` | `[Stembox],at_root → visible` |
-| `WidgetGroup` | `StemboxStatRow` | `Layout=horizontal; Size=0me,46f` | — |
-| `Label` | `StemboxStatKey` | `Text=Source; Size=0me,46f; Alignment=left` | — |
-| `Label` | `StemboxStatSource` | `Text=—; Size=0me,46f; Alignment=right` | — |
-| `WidgetGroup` | `StemboxHDivider` | `Size=0me,1f` | — |
-| `Label` | `StemboxStatKey` | `Text=Songs; Size=0me,46f; Alignment=left` | — |
-| `Label` | `StemboxStatSongs` | `Text=—; Size=0me,46f; Alignment=right` | — |
-| `Label` | `StemboxStatKey` | `Text=Playlists; Size=0me,46f; Alignment=left` | — |
-| `Label` | `StemboxStatPlaylists` | `Text=—; Size=0me,46f; Alignment=right` | — |
-| `Label` | `StemboxStatKey` | `Text=Date; Size=0me,46f; Alignment=left` | — |
-| `Label` | `StemboxStatDate` | `Text=—; Size=0me,46f; Alignment=right` | — |
-| `Label` | `StemboxStatKey` | `Text=Total; Size=0me,46f; Alignment=left` | — |
-| `Label` | `StemboxStatTotal` | `Text=—; Size=0me,46f; Alignment=right` | — |
+| `WidgetGroup` | `StemboxStatRow` | `Layout=horizontal; Size=0me,46f` | none |
+| `Label` | `StemboxStatKey` | `Text=Source; Size=0me,46f; Alignment=left` | none |
+| `Label` | `StemboxStatSource` | `Text=—; Size=0me,46f; Alignment=right` | none |
+| `WidgetGroup` | `StemboxHDivider` | `Size=0me,1f` | none |
+| `Label` | `StemboxStatKey` | `Text=Songs; Size=0me,46f; Alignment=left` | none |
+| `Label` | `StemboxStatSongs` | `Text=—; Size=0me,46f; Alignment=right` | none |
+| `Label` | `StemboxStatKey` | `Text=Playlists; Size=0me,46f; Alignment=left` | none |
+| `Label` | `StemboxStatPlaylists` | `Text=—; Size=0me,46f; Alignment=right` | none |
+| `Label` | `StemboxStatKey` | `Text=Date; Size=0me,46f; Alignment=left` | none |
+| `Label` | `StemboxStatDate` | `Text=—; Size=0me,46f; Alignment=right` | none |
+| `Label` | `StemboxStatKey` | `Text=Total; Size=0me,46f; Alignment=left` | none |
+| `Label` | `StemboxStatTotal` | `Text=—; Size=0me,46f; Alignment=right` | none |
 | `WidgetGroup` | `StemboxHDivider` | `Size=0me,1f` | `[Stembox],src_library_loaded → visible NOT` |
 | `WidgetGroup` | `StemboxStatRow` | `Layout=horizontal; Size=0me,46f` | `[Stembox],src_library_loaded → visible NOT` |
-| `Label` | `StemboxStatKey` | `Text=Available; Size=0me,46f; Alignment=left` | — |
-| `Label` | `StemboxStatAvail` | `Text=—; Size=0me,46f; Alignment=right` | — |
+| `Label` | `StemboxStatKey` | `Text=Available; Size=0me,46f; Alignment=left` | none |
+| `Label` | `StemboxStatAvail` | `Text=—; Size=0me,46f; Alignment=right` | none |
 | `WidgetGroup` | `StemboxHDivider` | `Size=0me,1f` | `[Stembox],src_analyzing → visible` |
 | `WidgetGroup` | `StemboxProgressRow` | `Layout=vertical; Size=0me,52f` | `[Stembox],src_analyzing → visible` |
-| `Label` | `StemboxStatKey` | `Text=Loading; Size=0me,34f; Alignment=left` | — |
-| `Label` | `StemboxProgressText` | `Text=—; Size=0me,34f; Alignment=right` | — |
-| `WidgetGroup` | `StemboxProgressTrack` | `Layout=horizontal; Size=0me,10f` | — |
-| `WidgetGroup` | `StemboxProgressFill` | `Size=0f,10f` | — |
-| `WidgetGroup` | `StemboxProgressRest` | `SizePolicy=me,me` | — |
+| `Label` | `StemboxStatKey` | `Text=Loading; Size=0me,34f; Alignment=left` | none |
+| `Label` | `StemboxProgressText` | `Text=—; Size=0me,34f; Alignment=right` | none |
+| `WidgetGroup` | `StemboxProgressTrack` | `Layout=horizontal; Size=0me,10f` | none |
+| `WidgetGroup` | `StemboxProgressFill` | `Size=0f,10f` | none |
+| `WidgetGroup` | `StemboxProgressRest` | `SizePolicy=me,me` | none |
 | `PushButton` | `StemboxEjectBtn` | `SizePolicy=me,me; NumberStates=1; State.Text=Eject drive` | `[Stembox],src_eject_drive → left` |
 | `PushButton` | `StemboxEjectBtn` | `SizePolicy=me,me; NumberStates=1; State.Text=Open library` | `[Stembox],stembox_lib_manage → left` |
 | `WidgetGroup` | `StemboxTracksPane` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],show_tracks → visible` |
-| `WidgetGroup` | `StemboxResultsWrap` | `Layout=vertical; SizePolicy=me,me; MinimumSize=0,0` | — |
-| `WidgetGroup` | `StemboxResultsInner` | `Layout=vertical; SizePolicy=me,me; MinimumSize=0,0` | — |
-| `Library` | `[unnamed]` | `ShowButtonText=false; TrackTableBackgroundColorOpacity=0; SignalColor={SignalColor_12}` | — |
+| `WidgetGroup` | `StemboxResultsWrap` | `Layout=vertical; SizePolicy=me,me; MinimumSize=0,0` | none |
+| `WidgetGroup` | `StemboxResultsInner` | `Layout=vertical; SizePolicy=me,me; MinimumSize=0,0` | none |
+| `Library` | `[unnamed]` | `ShowButtonText=false; TrackTableBackgroundColorOpacity=0; SignalColor={SignalColor_12}` | none |
 | `WidgetGroup` | `StemboxKeyboard` | `Layout=vertical; Size=0me,200max` | `[Stembox],search_mode → visible` |
 | `WidgetGroup` | `StemboxKeyboardBottomPad` | `Size=0me,6f` | `[Stembox],search_mode → visible` |
-| `WidgetGroup` | `StemboxSourceHeaderRow` | `Layout=horizontal; Size=0me,70f; SizePolicy=me,f` | — |
+| `WidgetGroup` | `StemboxSourceHeaderRow` | `Layout=horizontal; Size=0me,70f; SizePolicy=me,f` | none |
 | `PushButton` | `StemboxBackButton` | `Size=34f,34f; MaximumSize=34,34; NumberStates=1` | `[Stembox],stems_page_close → left` |
-| `Label` | `StemboxSourceHeader` | `Text=STEMS MANAGER; SizePolicy=me,me; Alignment=left` | — |
-| `StemboxStemsDest` | `StemboxStemsDest` | `Size=0me,70f; SizePolicy=me,f` | — |
-| `StemboxStems` | `StemboxStemsList` | `SizePolicy=me,me` | — |
+| `Label` | `StemboxSourceHeader` | `Text=STEMS MANAGER; SizePolicy=me,me; Alignment=left` | none |
+| `StemboxStemsDest` | `StemboxStemsDest` | `Size=0me,70f; SizePolicy=me,f` | none |
+| `StemboxStems` | `StemboxStemsList` | `SizePolicy=me,me` | none |
 All direct bindings, including anonymous wrappers: `[Stembox],nav_hidden → visible NOT`; `[Stembox],at_root → visible NOT`; `[Stembox],search_mode → visible NOT`; `[Stembox],go_source → LeftButton`; `[Stembox],back_hidden → visible NOT`; `[Stembox],header_back → LeftButton`; `[Stembox],nav_mode → currentpage`; `[Stembox],search_mode → visible`; `[Stembox],nav_active_history → visible`; `[Stembox],past_sessions_open → visible NOT`; `[Stembox],go_past_sessions → LeftButton`; `[Stembox],font_state → currentpage`; `[Stembox],font_cycle → LeftButton`; `[Stembox],stems_page → visible NOT`; `[Stembox],show_tracks → visible NOT`; `[Stembox],at_root → visible`; `[Stembox],source_diag_open → LeftButton`; `[Stembox],stems_page_open → LeftButton`; `[Stembox],mix_mode → visible NOT`; `[Stembox],playlist_mode → visible NOT`; `[Stembox],src_library_loaded → visible NOT`; `[Stembox],src_analyzing → visible`; `[Stembox],src_device_loaded → visible`; `[Stembox],src_eject_drive → LeftButton`; `[Stembox],src_library_loaded → visible`; `[Stembox],stembox_lib_manage → LeftButton`; `[Stembox],show_tracks → visible`; `[Stembox],keyboard_azerty → visible`; `[Stembox],keyboard_azerty → visible NOT`; `[Stembox],stems_page → visible`; `[Stembox],stems_page_close → LeftButton`.
 Template instantiations: `stembox_navitem.xml: Label=ARTIST, IconGrey=skins:LateNight/stembox_nav_artist.svg, IconGreen=skins:LateNight/stembox_nav_artist_on.svg, GoControl=[Stembox],go_artist, ActiveControl=[Stembox],nav_active_artist, LShift=0f, RShift=0f`; `stembox_navitem.xml: Label=ALBUM, IconGrey=skins:LateNight/stembox_nav_album.svg, IconGreen=skins:LateNight/stembox_nav_album_on.svg, GoControl=[Stembox],go_album, ActiveControl=[Stembox],nav_active_album, LShift=0f, RShift=0f`; `stembox_navitem.xml: Label=TRACK, IconGrey=skins:LateNight/stembox_nav_track.svg, IconGreen=skins:LateNight/stembox_nav_track_on.svg, GoControl=[Stembox],go_track, ActiveControl=[Stembox],nav_active_track, LShift=0f, RShift=4f`; `stembox_navitem.xml: Label=KEY, IconGrey=skins:LateNight/stembox_nav_key.svg, IconGreen=skins:LateNight/stembox_nav_key_on.svg, GoControl=[Stembox],go_key, ActiveControl=[Stembox],nav_active_key, LShift=0f, RShift=0f`; `stembox_navitem.xml: Label=PLAYLIST, IconGrey=skins:LateNight/stembox_nav_playlist.svg, IconGreen=skins:LateNight/stembox_nav_playlist_on.svg, GoControl=[Stembox],go_playlist, ActiveControl=[Stembox],nav_active_playlist, LShift=0f, RShift=0f`; `stembox_navitem.xml: Label=HISTORY, IconGrey=skins:LateNight/stembox_nav_history.svg, IconGreen=skins:LateNight/stembox_nav_history_on.svg, GoControl=[Stembox],go_history, ActiveControl=[Stembox],nav_active_history, LShift=0f, RShift=0f`; `stembox_navitem.xml: Label=MATCHING, IconGrey=skins:LateNight/stembox_nav_matching.svg, IconGreen=skins:LateNight/stembox_nav_matching_on.svg, GoControl=[Stembox],go_matching, ActiveControl=[Stembox],nav_active_matching, LShift=0f, RShift=0f`; `stembox_navitem.xml: Label=SEARCH, IconGrey=skins:LateNight/stembox_nav_search.svg, IconGreen=skins:LateNight/stembox_nav_search_on.svg, GoControl=[Stembox],go_search, ActiveControl=[Stembox],search_mode, LShift=0f, RShift=0f`; `stembox_key.xml: K=A, C=[Stembox],kb_a`; `stembox_key.xml: K=Z, C=[Stembox],kb_z`; `stembox_key.xml: K=E, C=[Stembox],kb_e`; `stembox_key.xml: K=R, C=[Stembox],kb_r`; `stembox_key.xml: K=T, C=[Stembox],kb_t`; `stembox_key.xml: K=Y, C=[Stembox],kb_y`; `stembox_key.xml: K=U, C=[Stembox],kb_u`; `stembox_key.xml: K=I, C=[Stembox],kb_i`; `stembox_key.xml: K=O, C=[Stembox],kb_o`; `stembox_key.xml: K=P, C=[Stembox],kb_p`; `stembox_key_back.xml: C=[Stembox],kb_back`; `stembox_key.xml: K=Q, C=[Stembox],kb_q`; `stembox_key.xml: K=S, C=[Stembox],kb_s`; `stembox_key.xml: K=D, C=[Stembox],kb_d`; `stembox_key.xml: K=F, C=[Stembox],kb_f`; `stembox_key.xml: K=G, C=[Stembox],kb_g`; `stembox_key.xml: K=H, C=[Stembox],kb_h`; `stembox_key.xml: K=J, C=[Stembox],kb_j`; `stembox_key.xml: K=K, C=[Stembox],kb_k`; `stembox_key.xml: K=L, C=[Stembox],kb_l`; `stembox_key_wide.xml: K=CLEAR, C=[Stembox],kb_clear`; `stembox_key.xml: K=123, C=[Stembox],kb_123`; `stembox_key.xml: K=W, C=[Stembox],kb_w`; `stembox_key.xml: K=X, C=[Stembox],kb_x`; `stembox_key.xml: K=C, C=[Stembox],kb_c`; `stembox_key.xml: K=V, C=[Stembox],kb_v`; `stembox_key.xml: K=B, C=[Stembox],kb_b`; `stembox_key.xml: K=N, C=[Stembox],kb_n`; `stembox_key.xml: K=M, C=[Stembox],kb_m`; `stembox_key_wide.xml: K=SPACE, C=[Stembox],kb_space`.
 ### stembox_bj_row.xml
 Source: [stembox_bj_row.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_bj_row.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `StemboxBjRow` | `StemboxBjRow` | `SizePolicy=me,me; N1={N1}; N2={N2}; Deck={Deck}; PadBase={PadBase}` | — |
+| `StemboxBjRow` | `StemboxBjRow` | `SizePolicy=me,me; N1={N1}; N2={N2}; Deck={Deck}; PadBase={PadBase}` | none |
 ### stembox_bl_row.xml
 Source: [stembox_bl_row.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_bl_row.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `StemboxBlRow` | `StemboxBlRow` | `SizePolicy=me,me; Group=[Channel{chanNum}]; Deck={Deck}; Saver={Saver}; L1={L1}; S1={S1}; L2={L2}; S2={S2}; L3={L3}; S3={S3}; L4={L4}; S4={S4}` | — |
+| `StemboxBlRow` | `StemboxBlRow` | `SizePolicy=me,me; Group=[Channel{chanNum}]; Deck={Deck}; Saver={Saver}; L1={L1}; S1={S1}; L2={L2}; S2={S2}; L3={L3}; S3={S3}; L4={L4}; S4={S4}` | none |
 ### stembox_cdj_deck.xml
 Source: [stembox_cdj_deck.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_cdj_deck.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `WidgetGroup` | `StemboxCdjDeck` | `Layout=vertical; SizePolicy=me,me` | — |
+| `WidgetGroup` | `StemboxCdjDeck` | `Layout=vertical; SizePolicy=me,me` | none |
 | `WidgetGroup` | `StemboxDeckLargeTopGap` | `SizePolicy=me,me` | `[Stembox],vue_large_compacte → visible NOT` |
-| `WidgetGroup` | `StemboxDeckInfo` | `Layout=horizontal; Size=0me,52f` | — |
-| `CoverArt` | `StemboxDeckCover` | `TooltipId=coverart; Size=44f,44f; Group=[Channel{chanNum}]; DefaultCover=skins:LateNight/stembox_disk_ph.png` | — |
+| `WidgetGroup` | `StemboxDeckInfo` | `Layout=horizontal; Size=0me,52f` | none |
+| `CoverArt` | `StemboxDeckCover` | `TooltipId=coverart; Size=44f,44f; Group=[Channel{chanNum}]; DefaultCover=skins:LateNight/stembox_disk_ph.png` | none |
 | `PushButton` | `StemboxDeckNote` | `Size=18f,18f; NumberStates=2` | `[Channel{chanNum}],stem_count → state NOTNOT; [Channel{chanNum}],eq_stems → visible NOT` |
 | `PushButton` | `StemboxDeckNote` | `Size=18f,18f; NumberStates=1` | `[Channel{chanNum}],eq_stems → visible` |
-| `TrackProperty` | `StemboxDeckTitle` | `TooltipId=track_title; SizePolicy=me,f; Size=0me,26f; MinimumSize=0,0; Property=titleInfo; Alignment=left; Elide=right; Channel={chanNum}` | — |
-| `TrackProperty` | `StemboxDeckArtist` | `TooltipId=track_artist; SizePolicy=me,f; Size=0me,20f; MinimumSize=0,0; Property=artist; Alignment=left; Elide=right; Channel={chanNum}` | — |
-| `WidgetGroup` | `StemboxDeckStatHit` | `Layout=stacked; Size=58f,46f` | — |
+| `TrackProperty` | `StemboxDeckTitle` | `TooltipId=track_title; SizePolicy=me,f; Size=0me,26f; MinimumSize=0,0; Property=titleInfo; Alignment=left; Elide=right; Channel={chanNum}` | none |
+| `TrackProperty` | `StemboxDeckArtist` | `TooltipId=track_artist; SizePolicy=me,f; Size=0me,20f; MinimumSize=0,0; Property=artist; Alignment=left; Elide=right; Channel={chanNum}` | none |
+| `WidgetGroup` | `StemboxDeckStatHit` | `Layout=stacked; Size=58f,46f` | none |
 | `PushButton` | `StemboxBpmDiagHit` | `Size=58f,46f; NumberStates=1` | `[Stembox],grid_diag → left` |
-| `WidgetGroup` | `StemboxDeckStat` | `Layout=vertical; Size=58f,46f` | — |
-| `Label` | `StemboxDeckStatCap` | `Text=BPM; Size=0me,12f; Alignment=center` | — |
-| `StemboxReadout` | `StemboxDeckStatVal` | `Size=0me,26f; Alignment=center; Mode=filebpm; SmallRatio=1.0; Channel={chanNum}` | — |
-| `WidgetGroup` | `StemboxDeckStat` | `Layout=vertical; Size=50f,46f` | — |
-| `Label` | `StemboxDeckStatCap` | `Text=KEY; Size=0me,12f; Alignment=center` | — |
+| `WidgetGroup` | `StemboxDeckStat` | `Layout=vertical; Size=58f,46f` | none |
+| `Label` | `StemboxDeckStatCap` | `Text=BPM; Size=0me,12f; Alignment=center` | none |
+| `StemboxReadout` | `StemboxDeckStatVal` | `Size=0me,26f; Alignment=center; Mode=filebpm; SmallRatio=1.0; Channel={chanNum}` | none |
+| `WidgetGroup` | `StemboxDeckStat` | `Layout=vertical; Size=50f,46f` | none |
+| `Label` | `StemboxDeckStatCap` | `Text=KEY; Size=0me,12f; Alignment=center` | none |
 | `Label` | `StemboxDeckStatVal` | `Text=#; Size=0me,26f; Alignment=center` | `[Channel{chanNum}],track_loaded → visible NOT` |
 | `Key` | `StemboxDeckStatVal` | `TooltipId=visual_key; Size=0me,26f; Alignment=center; UseFileKey=true; Channel={chanNum}` | `[Channel{chanNum}],key → state; [Channel{chanNum}],track_loaded → visible` |
-| `WidgetGroup` | `StemboxDeckStat` | `Layout=vertical; Size=62f,46f` | — |
-| `Label` | `StemboxDeckStatCap` | `Text=TIME; Size=0me,12f; Alignment=center` | — |
-| `StemboxReadout` | `StemboxDeckStatVal` | `Size=0me,26f; Alignment=center; Mode=duration; Channel={chanNum}` | — |
+| `WidgetGroup` | `StemboxDeckStat` | `Layout=vertical; Size=62f,46f` | none |
+| `Label` | `StemboxDeckStatCap` | `Text=TIME; Size=0me,12f; Alignment=center` | none |
+| `StemboxReadout` | `StemboxDeckStatVal` | `Size=0me,26f; Alignment=center; Mode=duration; Channel={chanNum}` | none |
 | `PushButton` | `StemboxGridEditBtn` | `Size=24f,24f; NumberStates=2; State.Text=i` | `[Stembox],grid_edit{chanNum} → left; [Channel{chanNum}],track_loaded → enabled` |
 | `WidgetGroup` | `StemboxDeckWaveforms` | `Layout=horizontal; SizePolicy=me,me` | `[Stembox],mix_mode → visible` |
-| `StemboxMultiFx` | `StemboxMultiFxTabs` | `Size=0me,20f; Deck={chanNum}` | — |
+| `StemboxMultiFx` | `StemboxMultiFxTabs` | `Size=0me,20f; Deck={chanNum}` | none |
 | `Visual` | `StemboxWfThin` | `TooltipId=waveform_display; Size=0me,64f; Channel={otherNum}; StemboxLeftFade=true; StemboxPlayMarkerYOffset=1; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; BeatColor=#000000; StemboxZoomGroup=[Channel{chanNum}]` | `[Channel{chanNum}],track_loaded → visible` |
-| `StemboxZoomGroup` | `[unnamed]` | `Variable=[Channel{chanNum}]` | — |
+| `StemboxZoomGroup` | `[unnamed]` | `Variable=[Channel{chanNum}]` | none |
 | `StemboxGridPreview` | `StemboxGridPreview` | `SizePolicy=me,f; Size=0me,64f; Deck={chanNum}` | `[Channel{chanNum}],track_loaded → visible` |
 | `WidgetGroup` | `StemboxWfTopPad` | `Size=0me,1f` | `[Channel{chanNum}],track_loaded → visible` |
 | `Visual` | `StemboxWfBig` | `TooltipId=waveform_display; SizePolicy=me,me; Size=0me,0me; Channel={chanNum}; StemboxZoomHold=true; StemboxCueMargin=12; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; BeatColor=#000000; DefaultMark=top&#124;hcenter #FF0000 #000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff9800 0.60 #ffffff 0.20` | `[Channel{chanNum}],track_loaded → visible` |
-| `PushButton` | `StemboxDeckLogo` | `Size=256f,43f; NumberStates=1` | — |
-| `WidgetGroup` | `StemboxWfBottomPad` | `Size=0me,32f` | — |
+| `PushButton` | `StemboxDeckLogo` | `Size=256f,43f; NumberStates=1` | none |
+| `WidgetGroup` | `StemboxWfBottomPad` | `Size=0me,32f` | none |
 | `WidgetGroup` | `StemboxDeckLargeGap` | `SizePolicy=me,f; Size=0me,10f` | `[Stembox],mix_mode → visible NOT` |
-| `WidgetGroup` | `StemboxDeckBar` | `Layout=horizontal; Size=0me,68f` | — |
+| `WidgetGroup` | `StemboxDeckBar` | `Layout=horizontal; Size=0me,68f` | none |
 | `WidgetGroup` | `StemboxPlayerBoxIdle` | `Layout=vertical; Size=52f,58f` | `[Stembox],deck_live{chanNum} → visible NOT` |
-| `Label` | `StemboxPlayerCapIdle` | `Text=PLAYER; Size=0me,14f; Alignment=center` | — |
-| `Label` | `StemboxPlayerNumIdle` | `Text={chanNum}; Size=0me,40f; Alignment=center` | — |
+| `Label` | `StemboxPlayerCapIdle` | `Text=PLAYER; Size=0me,14f; Alignment=center` | none |
+| `Label` | `StemboxPlayerNumIdle` | `Text={chanNum}; Size=0me,40f; Alignment=center` | none |
 | `WidgetGroup` | `StemboxPlayerBox` | `Layout=vertical; Size=52f,58f` | `[Stembox],deck_live{chanNum} → visible` |
-| `Label` | `StemboxPlayerCap` | `Text=PLAYER; Size=0me,14f; Alignment=center` | — |
+| `Label` | `StemboxPlayerCap` | `Text=PLAYER; Size=0me,14f; Alignment=center` | none |
 | `PushButton` | `StemboxCueWave` | `SizePolicy=me,me; NumberStates=2` | `[Channel{chanNum}],cue_indicator → state` |
-| `Label` | `StemboxPlayerNum` | `Text={chanNum}; SizePolicy=min,me; Alignment=center` | — |
-| `Label` | `StemboxBarCap` | `Text=TRACK; Size=0me,14f; Alignment=center` | — |
-| `StemboxReadout` | `StemboxTrackNo` | `Size=0me,40f; Alignment=center; Mode=trackno; Channel={chanNum}` | — |
+| `Label` | `StemboxPlayerNum` | `Text={chanNum}; SizePolicy=min,me; Alignment=center` | none |
+| `Label` | `StemboxBarCap` | `Text=TRACK; Size=0me,14f; Alignment=center` | none |
+| `StemboxReadout` | `StemboxTrackNo` | `Size=0me,40f; Alignment=center; Mode=trackno; Channel={chanNum}` | none |
 | `PushButton` | `StemboxCueBtn` | `Size=46f,22f; NumberStates=2; State.Text=CUE` | `[Channel{chanNum}],pfl → left; [Channel{chanNum}],pfl → state` |
 | `PushButton` | `StemboxSyncBtn` | `Size=46f,22f; NumberStates=2; State.Text=SYNC` | `[Channel{chanNum}],stembox_follower → state` |
-| `StemboxTimeCap` | `StemboxBarCap` | `Size=0me,11f; Group=[Channel{chanNum}]` | — |
-| `StemboxReadout` | `StemboxRemain` | `Size=0me,47f; Alignment=left; Mode=time; SmallRatio=0.58; Channel={chanNum}` | — |
+| `StemboxTimeCap` | `StemboxBarCap` | `Size=0me,11f; Group=[Channel{chanNum}]` | none |
+| `StemboxReadout` | `StemboxRemain` | `Size=0me,47f; Alignment=left; Mode=time; SmallRatio=0.58; Channel={chanNum}` | none |
 | `Label` | `StemboxSlipTag` | `Text=SLIP; Size=40f,17f; Alignment=center` | `[Channel{chanNum}],stembox_slip_mode → visible` |
-| `Label` | `StemboxSlipTag` | `Text=SLIP; Size=40f,17f; Alignment=center` | — |
+| `Label` | `StemboxSlipTag` | `Text=SLIP; Size=40f,17f; Alignment=center` | none |
 | `Overview` | `StemboxOverview` | `TooltipId=waveform_overview; SizePolicy=me,f; Size=0me,48f; Channel={chanNum}; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;left #FF0000 #000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff9800 0.60 #ffffff 0.20` | `[Channel{chanNum}],playposition → state; [Channel{chanNum}],track_loaded → visible` |
-| `StemboxRateRange` | `StemboxRateRangeBtn` | `Size=56f,62f; Deck={chanNum}` | — |
-| `WidgetGroup` | `StemboxBpmStack` | `Layout=stacked; Size=120f,65f` | — |
+| `StemboxRateRange` | `StemboxRateRangeBtn` | `Size=56f,62f; Deck={chanNum}` | none |
+| `WidgetGroup` | `StemboxBpmStack` | `Layout=stacked; Size=120f,65f` | none |
 | `WidgetGroup` | `StemboxBpmBoxIdle` | `Layout=vertical; Size=120f,65f` | `[Stembox],deck_live{chanNum} → visible NOT` |
-| `Label` | `StemboxBarCapIdle` | `Text=BPM; Size=0me,11f; Alignment=left` | — |
-| `StemboxReadout` | `StemboxBpmBigIdle` | `Size=0me,48f; Alignment=right; Mode=bpm; SmallRatio=0.58; Channel={chanNum}` | — |
+| `Label` | `StemboxBarCapIdle` | `Text=BPM; Size=0me,11f; Alignment=left` | none |
+| `StemboxReadout` | `StemboxBpmBigIdle` | `Size=0me,48f; Alignment=right; Mode=bpm; SmallRatio=0.58; Channel={chanNum}` | none |
 | `WidgetGroup` | `StemboxBpmBox` | `Layout=vertical; Size=120f,65f` | `[Stembox],deck_live{chanNum} → visible` |
 | `Label` | `StemboxBarCap` | `Text=BPM; Size=0me,11f; Alignment=left` | `[Channel{chanNum}],stembox_follower → visible NOT` |
 | `Label` | `StemboxBarCap` | `Text=BEAT SYNC; Size=0me,11f; Alignment=left` | `[Channel{chanNum}],stembox_follower → visible` |
-| `StemboxReadout` | `StemboxBpmBig` | `Size=0me,48f; Alignment=right; Mode=bpm; SmallRatio=0.58; Channel={chanNum}` | — |
+| `StemboxReadout` | `StemboxBpmBig` | `Size=0me,48f; Alignment=right; Mode=bpm; SmallRatio=0.58; Channel={chanNum}` | none |
 All direct bindings, including anonymous wrappers: `[Stembox],mix_mode → visible NOT`; `[Stembox],vue_large_compacte → visible NOT`; `[Channel{chanNum}],stem_count → state NOTNOT`; `[Channel{chanNum}],eq_stems → visible NOT`; `[Channel{chanNum}],eq_stems → visible`; `[Stembox],grid_diag → LeftButton`; `[Channel{chanNum}],track_loaded → visible NOT`; `[Channel{chanNum}],key → state`; `[Channel{chanNum}],track_loaded → visible`; `[Stembox],grid_edit{chanNum} → LeftButton`; `[Channel{chanNum}],track_loaded → enabled`; `[Stembox],mix_mode → visible`; `[Stembox],beat_fx_multi → visible`; `[Channel{otherNum}],track_loaded → visible`; `[Stembox],preview_style → visible NOT`; `[Channel{chanNum}],stembox_menu_dessus → visible NOT`; `[Stembox],preview_style → visible`; `[Stembox],deck_live{chanNum} → visible NOT`; `[Stembox],deck_live{chanNum} → visible`; `[Channel{chanNum}],cue_indicator → state`; `[Channel{chanNum}],pfl → LeftButton`; `[Channel{chanNum}],pfl → state`; `[Channel{chanNum}],stembox_follower → state`; `[Stembox],vue_large_compacte → visible`; `[Channel{chanNum}],stembox_slip_mode → visible`; `[Channel{chanNum}],playposition → state`; `[Channel{chanNum}],stembox_follower → visible NOT`; `[Channel{chanNum}],stembox_follower → visible`.
 Template instantiations: `stembox_gridedit.xml: chanNum={chanNum}`.
 ### stembox_deck_bottom.xml
 Source: [stembox_deck_bottom.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_deck_bottom.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `WidgetGroup` | `StemboxDeckBottom` | `Layout=vertical; SizePolicy=me,min` | — |
+| `WidgetGroup` | `StemboxDeckBottom` | `Layout=vertical; SizePolicy=me,min` | none |
 | `WidgetGroup` | `StemboxDeckBar2` | `Layout=horizontal; Size=0me,52f` | `[Stembox],vue_large_compacte → visible NOT` |
 | `PushButton` | `StemboxToggle` | `Size=60f,20f; NumberStates=2; State.Text=MT` | `[Channel{chanNum}],keylock → left; [Channel{chanNum}],keylock → state` |
 | `PushButton` | `StemboxQuantize` | `Size=60f,20f; NumberStates=2; State.Text=QUANTIZE` | `[Channel{chanNum}],quantize → left; [Channel{chanNum}],quantize → state` |
 | `Overview` | `StemboxOverview` | `TooltipId=waveform_overview; SizePolicy=me,f; Size=0me,48f; Channel={chanNum}; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;left #FF0000 #000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff9800 0.60 #ffffff 0.20` | `[Channel{chanNum}],playposition → state; [Channel{chanNum}],track_loaded → visible` |
 | `Label` | `StemboxNotLoadedSmall` | `Text=Not Loaded.; SizePolicy=me,f; Size=0me,48f; Alignment=center` | `[Channel{chanNum}],track_loaded → visible NOT` |
-| `StemboxFx` | `StemboxFxBlock` | `Size=54f,48f; Deck={chanNum}; ColorFxOnDecks=1,3` | — |
+| `StemboxFx` | `StemboxFxBlock` | `Size=54f,48f; Deck={chanNum}; ColorFxOnDecks=1,3` | none |
 | `WidgetGroup` | `StemboxPadsSlim` | `Layout=vertical; Size=0me,20f; SizePolicy=me,f` | `[Stembox],vue_large_compacte → visible` |
-| `StemboxStemPads` | `[unnamed]` | `SizePolicy=me,me; Deck={chanNum}` | — |
-| `StemboxDrums` | `[unnamed]` | `SizePolicy=me,me; Deck={chanNum}` | — |
+| `StemboxStemPads` | `[unnamed]` | `SizePolicy=me,me; Deck={chanNum}` | none |
+| `StemboxDrums` | `[unnamed]` | `SizePolicy=me,me; Deck={chanNum}` | none |
 | `WidgetGroup` | `StemboxPads` | `Layout=vertical; Size=0me,96f` | `[Stembox],vue_large_compacte → visible NOT` |
 | `WidgetGroup` | `StemboxPadPage` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],pad_hotcue_{chanNum} → visible` |
 | `WidgetGroup` | `StemboxPadPage` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],pad_beatjump_{chanNum} → visible` |
@@ -397,17 +398,17 @@ Template instantiations: `stembox_pad_slim.xml: group=[Channel{chanNum}], n=1, P
 Source: [stembox_gridedit.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_gridedit.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `WidgetGroup` | `StemboxGridEditPanel` | `Layout=vertical; SizePolicy=f,f; Size=154f,287f` | — |
-| `Label` | `StemboxGridEditTitle` | `Text=BEAT GRID EDIT; Size=0me,12f; Alignment=center` | — |
-| `WidgetGroup` | `StemboxGridEditDiv` | `Size=0me,1f` | — |
-| `Label` | `StemboxGridEditCap` | `Text=TEMPO; Size=0me,20f; Alignment=left` | — |
-| `StemboxReadout` | `StemboxGridEditBpm` | `Size=0me,38f; Alignment=center; Mode=filebpm; SmallRatio=1.0; Channel={chanNum}` | — |
+| `WidgetGroup` | `StemboxGridEditPanel` | `Layout=vertical; SizePolicy=f,f; Size=154f,287f` | none |
+| `Label` | `StemboxGridEditTitle` | `Text=BEAT GRID EDIT; Size=0me,12f; Alignment=center` | none |
+| `WidgetGroup` | `StemboxGridEditDiv` | `Size=0me,1f` | none |
+| `Label` | `StemboxGridEditCap` | `Text=TEMPO; Size=0me,20f; Alignment=left` | none |
+| `StemboxReadout` | `StemboxGridEditBpm` | `Size=0me,38f; Alignment=center; Mode=filebpm; SmallRatio=1.0; Channel={chanNum}` | none |
 | `PushButton` | `StemboxGridEditKey` | `Size=0me,0me; SizePolicy=me,me; NumberStates=1; StemboxRepeat=true; State.Text=−` | `[Channel{chanNum}],stembox_grid_bpm_down → left` |
 | `PushButton` | `StemboxGridEditKey` | `Size=0me,0me; SizePolicy=me,me; NumberStates=1; StemboxRepeat=true; State.Text=+` | `[Channel{chanNum}],stembox_grid_bpm_up → left` |
-| `Label` | `StemboxGridEditCap` | `Text=POSITION; Size=0me,22f; Alignment=left` | — |
+| `Label` | `StemboxGridEditCap` | `Text=POSITION; Size=0me,22f; Alignment=left` | none |
 | `PushButton` | `StemboxGridEditKey` | `Size=0me,0me; SizePolicy=me,me; NumberStates=1; StemboxRepeat=true; State.Text=◀` | `[Channel{chanNum}],beats_translate_earlier → left` |
 | `PushButton` | `StemboxGridEditKey` | `Size=0me,0me; SizePolicy=me,me; NumberStates=1; StemboxRepeat=true; State.Text=▶` | `[Channel{chanNum}],beats_translate_later → left` |
-| `Label` | `StemboxGridEditCap` | `Text=1ST TIME; Size=0me,22f; Alignment=left` | — |
+| `Label` | `StemboxGridEditCap` | `Text=1ST TIME; Size=0me,22f; Alignment=left` | none |
 | `PushButton` | `StemboxGridEditKeyRed` | `StemboxHoverText=#000000; Size=0me,0me; SizePolicy=me,me; NumberStates=1; State.Text=◀` | `[Channel{chanNum}],stembox_grid_first_earlier → left` |
 | `PushButton` | `StemboxGridEditKeyRed` | `StemboxHoverText=#000000; Size=0me,0me; SizePolicy=me,me; NumberStates=1; State.Text=▶` | `[Channel{chanNum}],stembox_grid_first_later → left` |
 All direct bindings, including anonymous wrappers: `[Stembox],grid_edit{chanNum} → visible`; `[Channel{chanNum}],stembox_grid_bpm_down → LeftButton`; `[Channel{chanNum}],stembox_grid_bpm_up → LeftButton`; `[Channel{chanNum}],beats_translate_earlier → LeftButton`; `[Channel{chanNum}],beats_translate_later → LeftButton`; `[Channel{chanNum}],stembox_grid_first_earlier → LeftButton`; `[Channel{chanNum}],stembox_grid_first_later → LeftButton`.
@@ -433,24 +434,24 @@ All direct bindings, including anonymous wrappers: `{C} → LeftButton`.
 Source: [stembox_ks_row.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_ks_row.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `StemboxKsRow` | `StemboxKsRow` | `SizePolicy=me,me; Deck={Deck}; PadBase={PadBase}; L1={L1}; K1={K1}; L2={L2}; K2={K2}; L3={L3}; K3={K3}; L4={L4}; K4={K4}` | — |
+| `StemboxKsRow` | `StemboxKsRow` | `SizePolicy=me,me; Deck={Deck}; PadBase={PadBase}; L1={L1}; K1={K1}; L2={L2}; K2={K2}; L3={L3}; K3={K3}; L4={L4}; K4={K4}` | none |
 ### stembox_large_wf.xml
 Source: [stembox_large_wf.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_large_wf.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
 | `WidgetGroup` | `StemboxWfTagLive` | `Layout=vertical; Size=30f,0me; SizePolicy=f,me` | `[Stembox],deck_live{chanNum} → visible` |
-| `Label` | `StemboxWfTagNum` | `Text={chanNum}; SizePolicy=me,me; Alignment=center` | — |
+| `Label` | `StemboxWfTagNum` | `Text={chanNum}; SizePolicy=me,me; Alignment=center` | none |
 | `WidgetGroup` | `StemboxWfTagIdle` | `Layout=vertical; Size=30f,0me; SizePolicy=f,me` | `[Stembox],deck_live{chanNum} → visible NOT` |
-| `Label` | `StemboxWfTagNumIdle` | `Text={chanNum}; SizePolicy=me,me; Alignment=center` | — |
-| `Visual` | `{wfName}` | `TooltipId=waveform_display; SizePolicy=me,me; Size=0me,0me; Channel={chanNum}; StemboxZoomHold=true; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;hcenter#FF0000#000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff98000.60 #ffffff0.20` | — |
+| `Label` | `StemboxWfTagNumIdle` | `Text={chanNum}; SizePolicy=me,me; Alignment=center` | none |
+| `Visual` | `{wfName}` | `TooltipId=waveform_display; SizePolicy=me,me; Size=0me,0me; Channel={chanNum}; StemboxZoomHold=true; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;hcenter#FF0000#000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff98000.60 #ffffff0.20` | none |
 All direct bindings, including anonymous wrappers: `[Stembox],deck_live{chanNum} → visible`; `[Stembox],deck_live{chanNum} → visible NOT`.
 ### stembox_mix_active.xml
 Source: [stembox_mix_active.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_mix_active.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
 | `WidgetGroup` | `StemboxSplitLibDock` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],lib_left → visible` |
-| `SingletonContainer` | `LibrarySingleton` | `SizePolicy=me,me; MinimumSize=0,0` | — |
-| `WidgetGroup` | `StemboxCdjDivider` | `Size=40f,0me; SizePolicy=f,me; Layout=vertical` | — |
+| `SingletonContainer` | `LibrarySingleton` | `SizePolicy=me,me; MinimumSize=0,0` | none |
+| `WidgetGroup` | `StemboxCdjDivider` | `Size=40f,0me; SizePolicy=f,me; Layout=vertical` | none |
 | `WidgetGroup` | `StemboxSplitLibDock` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],lib_right → visible` |
 All direct bindings, including anonymous wrappers: `[Stembox],lib_left → visible NOT`; `[Stembox],lib_left → visible`; `[Stembox],lib_right → visible NOT`; `[Stembox],lib_right → visible`.
 Template instantiations: `stembox_cdj_deck.xml: chanNum=1, otherNum=2`; `stembox_deck_bottom.xml: chanNum=1, sg1=[Sampler1], sg2=[Sampler2], sg3=[Sampler3], sg4=[Sampler4], sg5=[Sampler5], sg6=[Sampler6], sg7=[Sampler7], sg8=[Sampler8]`; `stembox_cdj_deck.xml: chanNum=2, otherNum=1`; `stembox_deck_bottom.xml: chanNum=2, sg1=[Sampler9], sg2=[Sampler10], sg3=[Sampler11], sg4=[Sampler12], sg5=[Sampler13], sg6=[Sampler14], sg7=[Sampler15], sg8=[Sampler16]`.
@@ -458,26 +459,26 @@ Template instantiations: `stembox_cdj_deck.xml: chanNum=1, otherNum=2`; `stembox
 Source: [stembox_mix_large.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_mix_large.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `WidgetStack` | `[unnamed]` | `SizePolicy=me,me` | — |
+| `WidgetStack` | `[unnamed]` | `SizePolicy=me,me` | none |
 | `WidgetGroup` | `StemboxLargeWaveforms` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],show_preferences → visible NOT` |
 | `WidgetGroup` | `StemboxGridEditColumn` | `Layout=vertical; SizePolicy=f,me; Size=160f,0me` | `[Stembox],grille_ouverte → visible` |
 | `WidgetGroup` | `StemboxLargeMultiFxRow4` | `Layout=horizontal; Size=0me,24f; SizePolicy=me,f` | `[Stembox],beat_fx_multi → visible` |
-| `StemboxMultiFx` | `StemboxMultiFxTabsLarge` | `Size=0me,20f; Deck=1` | — |
-| `StemboxMultiFx` | `StemboxMultiFxTabsLarge` | `Size=0me,20f; Deck=2` | — |
-| `WidgetGroup` | `StemboxLargeRow4` | `Layout=horizontal; Size=0me,150f; SizePolicy=me,f` | — |
-| `WidgetGroup` | `StemboxLargeCenterBar` | `Size=10f,0me` | — |
-| `WidgetGroup` | `StemboxLargeCenterFill` | `Size=20f,0me` | — |
-| `WidgetGroup` | `StemboxLargeTopPad` | `Size=0me,22f; SizePolicy=me,f` | — |
-| `Visual` | `StemboxLargeWf1` | `TooltipId=waveform_display; SizePolicy=me,me; Size=0me,0me; Channel=1; StemboxZoomHold=true; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;hcenter#FF0000#000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff98000.60 #ffffff0.20` | — |
-| `Visual` | `StemboxLargeWf1Alt` | `TooltipId=waveform_display; SizePolicy=me,me; Size=0me,0me; Channel=3; StemboxZoomHold=true; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;hcenter#FF0000#000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff98000.60 #ffffff0.20` | — |
+| `StemboxMultiFx` | `StemboxMultiFxTabsLarge` | `Size=0me,20f; Deck=1` | none |
+| `StemboxMultiFx` | `StemboxMultiFxTabsLarge` | `Size=0me,20f; Deck=2` | none |
+| `WidgetGroup` | `StemboxLargeRow4` | `Layout=horizontal; Size=0me,150f; SizePolicy=me,f` | none |
+| `WidgetGroup` | `StemboxLargeCenterBar` | `Size=10f,0me` | none |
+| `WidgetGroup` | `StemboxLargeCenterFill` | `Size=20f,0me` | none |
+| `WidgetGroup` | `StemboxLargeTopPad` | `Size=0me,22f; SizePolicy=me,f` | none |
+| `Visual` | `StemboxLargeWf1` | `TooltipId=waveform_display; SizePolicy=me,me; Size=0me,0me; Channel=1; StemboxZoomHold=true; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;hcenter#FF0000#000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff98000.60 #ffffff0.20` | none |
+| `Visual` | `StemboxLargeWf1Alt` | `TooltipId=waveform_display; SizePolicy=me,me; Size=0me,0me; Channel=3; StemboxZoomHold=true; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;hcenter#FF0000#000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff98000.60 #ffffff0.20` | none |
 | `WidgetGroup` | `StemboxLargeLogoRow` | `Layout=vertical; SizePolicy=me,f; Size=0me,43f` | `[Channel1],track_loaded → visible NOT` |
-| `PushButton` | `StemboxDeckLogo` | `Size=256f,43f; NumberStates=1` | — |
-| `Visual` | `StemboxLargeWf2` | `TooltipId=waveform_display; SizePolicy=me,me; Size=0me,0me; Channel=2; StemboxZoomHold=true; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;hcenter#FF0000#000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff98000.60 #ffffff0.20` | — |
-| `Visual` | `StemboxLargeWf2Alt` | `TooltipId=waveform_display; SizePolicy=me,me; Size=0me,0me; Channel=4; StemboxZoomHold=true; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;hcenter#FF0000#000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff98000.60 #ffffff0.20` | — |
+| `PushButton` | `StemboxDeckLogo` | `Size=256f,43f; NumberStates=1` | none |
+| `Visual` | `StemboxLargeWf2` | `TooltipId=waveform_display; SizePolicy=me,me; Size=0me,0me; Channel=2; StemboxZoomHold=true; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;hcenter#FF0000#000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff98000.60 #ffffff0.20` | none |
+| `Visual` | `StemboxLargeWf2Alt` | `TooltipId=waveform_display; SizePolicy=me,me; Size=0me,0me; Channel=4; StemboxZoomHold=true; BgColor=#000000; SignalColor=#cc7a1f; SignalLowColor=#054CE3; SignalMidColor=#DE7002; SignalHighColor=#FAF4E8; DefaultMark=top&#124;hcenter#FF0000#000000; MarkRange=loop_start_position loop_end_position loop_enabled #ff98000.60 #ffffff0.20` | none |
 | `WidgetGroup` | `StemboxLargeMultiFxRow` | `Layout=horizontal; Size=0me,24f; SizePolicy=me,f` | `[Stembox],beat_fx_multi → visible` |
-| `WidgetGroup` | `StemboxLargeRow` | `Layout=horizontal; Size=0me,130f; SizePolicy=me,f` | — |
-| `WidgetGroup` | `StemboxLargeCenterFill` | `SizePolicy=me,me` | — |
-| `SingletonContainer` | `LibrarySingleton` | `SizePolicy=me,me` | — |
+| `WidgetGroup` | `StemboxLargeRow` | `Layout=horizontal; Size=0me,130f; SizePolicy=me,f` | none |
+| `WidgetGroup` | `StemboxLargeCenterFill` | `SizePolicy=me,me` | none |
+| `SingletonContainer` | `LibrarySingleton` | `SizePolicy=me,me` | none |
 | `WidgetGroup` | `StemboxLargeRow4` | `Layout=horizontal; Size=0me,150f; SizePolicy=me,f` | `[Stembox],large_4decks → visible` |
 | `WidgetGroup` | `StemboxBottomRow` | `Layout=horizontal; Size=0me,148f; SizePolicy=me,f` | `[Stembox],large_4decks → visible NOT` |
 All direct bindings, including anonymous wrappers: `[Stembox],large_4decks → visible`; `[Stembox],show_preferences → visible NOT`; `[Stembox],grille_ouverte → visible`; `[Stembox],beat_fx_multi → visible`; `[Stembox],large_4decks → visible NOT`; `[Stembox],deck_active3 → visible NOT`; `[Stembox],deck_active3 → visible`; `[Channel1],track_loaded → visible NOT`; `[Channel2],track_loaded → visible NOT`; `[Stembox],deck_active4 → visible NOT`; `[Stembox],deck_active4 → visible`.
@@ -487,8 +488,8 @@ Source: [stembox_mix_split.xml](</Applications/Stembox.app/Contents/Resources/sr
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
 | `WidgetGroup` | `StemboxSplitLibDock` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],lib_left → visible` |
-| `SingletonContainer` | `LibrarySingleton` | `SizePolicy=me,me; MinimumSize=0,0` | — |
-| `WidgetGroup` | `StemboxCdjDivider` | `Size=40f,0me; SizePolicy=f,me; Layout=vertical` | — |
+| `SingletonContainer` | `LibrarySingleton` | `SizePolicy=me,me; MinimumSize=0,0` | none |
+| `WidgetGroup` | `StemboxCdjDivider` | `Size=40f,0me; SizePolicy=f,me; Layout=vertical` | none |
 | `WidgetGroup` | `StemboxSplitLibDock` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],lib_right → visible` |
 All direct bindings, including anonymous wrappers: `[Stembox],lib_left → visible NOT`; `[Stembox],deck_active3 → visible NOT`; `[Stembox],deck_active3 → visible`; `[Stembox],lib_left → visible`; `[Stembox],lib_right → visible NOT`; `[Stembox],deck_active4 → visible NOT`; `[Stembox],deck_active4 → visible`; `[Stembox],lib_right → visible`.
 Template instantiations: `stembox_cdj_deck.xml: chanNum=1, otherNum=2`; `stembox_cdj_deck.xml: chanNum=3, otherNum=4`; `stembox_deck_bottom.xml: chanNum=1, sg1=[Sampler1], sg2=[Sampler2], sg3=[Sampler3], sg4=[Sampler4], sg5=[Sampler5], sg6=[Sampler6], sg7=[Sampler7], sg8=[Sampler8]`; `stembox_deck_bottom.xml: chanNum=3, sg1=[Sampler1], sg2=[Sampler2], sg3=[Sampler3], sg4=[Sampler4], sg5=[Sampler5], sg6=[Sampler6], sg7=[Sampler7], sg8=[Sampler8]`; `stembox_cdj_deck.xml: chanNum=2, otherNum=1`; `stembox_cdj_deck.xml: chanNum=4, otherNum=3`; `stembox_deck_bottom.xml: chanNum=2, sg1=[Sampler9], sg2=[Sampler10], sg3=[Sampler11], sg4=[Sampler12], sg5=[Sampler13], sg6=[Sampler14], sg7=[Sampler15], sg8=[Sampler16]`; `stembox_deck_bottom.xml: chanNum=4, sg1=[Sampler9], sg2=[Sampler10], sg3=[Sampler11], sg4=[Sampler12], sg5=[Sampler13], sg6=[Sampler14], sg7=[Sampler15], sg8=[Sampler16]`.
@@ -496,7 +497,7 @@ Template instantiations: `stembox_cdj_deck.xml: chanNum=1, otherNum=2`; `stembox
 Source: [stembox_navbar.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_navbar.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `WidgetGroup` | `StemboxNavBar` | `Layout=horizontal; SizePolicy=i,me; MinimumSize=0,0` | — |
+| `WidgetGroup` | `StemboxNavBar` | `Layout=horizontal; SizePolicy=i,me; MinimumSize=0,0` | none |
 | `PushButton` | `{menuObj}` | `SizePolicy=me,me; NumberStates=2; State.Text={menuText}` | `{menuAction} → left; {menuDisplay} → state` |
 | `PushButton` | `StemboxNavBrowse` | `SizePolicy=me,me; NumberStates={browseStates}; State.Text=BROWSE` | `{browseAction} → left; {browseDisplay} → state` |
 | `PushButton` | `StemboxNavPlaylist` | `SizePolicy=me,me; NumberStates=2; State.Text=TAG LIST` | `{playlistAction} → left; [Stembox],playlist_mode → state` |
@@ -508,61 +509,61 @@ Source: [stembox_navitem.xml](</Applications/Stembox.app/Contents/Resources/src/
 | --- | --- | --- | --- |
 | `WidgetGroup` | `StemboxNavItem` | `Layout=stacked; SizePolicy=me,me` | `{ActiveControl} → visible NOT` |
 | `PushButton` | `StemboxNavHit` | `SizePolicy=me,me; NumberStates=1` | `{GoControl} → left` |
-| `PushButton` | `StemboxNavIcon` | `Size=27f,27f; NumberStates=1` | — |
-| `PushButton` | `StemboxNavLabel` | `Size=0me,18f; NumberStates=1; State.Text={Label}` | — |
+| `PushButton` | `StemboxNavIcon` | `Size=27f,27f; NumberStates=1` | none |
+| `PushButton` | `StemboxNavLabel` | `Size=0me,18f; NumberStates=1; State.Text={Label}` | none |
 | `WidgetGroup` | `StemboxNavItemOn` | `Layout=stacked; SizePolicy=me,me` | `{ActiveControl} → visible` |
-| `PushButton` | `StemboxNavLabelOn` | `Size=0me,18f; NumberStates=1; State.Text={Label}` | — |
+| `PushButton` | `StemboxNavLabelOn` | `Size=0me,18f; NumberStates=1; State.Text={Label}` | none |
 All direct bindings, including anonymous wrappers: `{ActiveControl} → visible NOT`; `{GoControl} → LeftButton`; `{ActiveControl} → visible`.
 ### stembox_pad.xml
 Source: [stembox_pad.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_pad.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
 | `WidgetGroup` | `StemboxPad` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],{PK} → highlight` |
-| `HotcueButton` | `StemboxPadChip` | `Group=[Channel{chanNum}]; Hotcue={n}; MinimumSize=14,14; MaximumSize=14,14; SizePolicy=f,f; NumberStates=3; State.Text={L}` | — |
-| `HotcueLabel` | `StemboxPadLoopIcon` | `Group=[Channel{chanNum}]; Hotcue={n}; LoopIconOnly=true; MinimumSize=31,14; MaximumSize=31,14; SizePolicy=f,f` | — |
-| `HotcueLabel` | `StemboxPadName` | `Group=[Channel{chanNum}]; Hotcue={n}; SizePolicy=me,me; Alignment=left; Elide=right` | — |
+| `HotcueButton` | `StemboxPadChip` | `Group=[Channel{chanNum}]; Hotcue={n}; MinimumSize=14,14; MaximumSize=14,14; SizePolicy=f,f; NumberStates=3; State.Text={L}` | none |
+| `HotcueLabel` | `StemboxPadLoopIcon` | `Group=[Channel{chanNum}]; Hotcue={n}; LoopIconOnly=true; MinimumSize=31,14; MaximumSize=31,14; SizePolicy=f,f` | none |
+| `HotcueLabel` | `StemboxPadName` | `Group=[Channel{chanNum}]; Hotcue={n}; SizePolicy=me,me; Alignment=left; Elide=right` | none |
 All direct bindings, including anonymous wrappers: `[Stembox],{PK} → highlight`.
 ### stembox_pad_beatjump.xml
 Source: [stembox_pad_beatjump.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_pad_beatjump.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `WidgetGroup` | `StemboxBjCell` | `Layout=horizontal; SizePolicy=me,me` | — |
-| `Label` | `StemboxBjArrow` | `Text={AL}; SizePolicy=min,me; Alignment=right&#124;vcenter` | — |
-| `Label` | `StemboxBjNum` | `Text={N}; Size=24f,0me; Alignment=center` | — |
-| `Label` | `StemboxBjArrow` | `Text={AR}; SizePolicy=min,me; Alignment=left&#124;vcenter` | — |
+| `WidgetGroup` | `StemboxBjCell` | `Layout=horizontal; SizePolicy=me,me` | none |
+| `Label` | `StemboxBjArrow` | `Text={AL}; SizePolicy=min,me; Alignment=right&#124;vcenter` | none |
+| `Label` | `StemboxBjNum` | `Text={N}; Size=24f,0me; Alignment=center` | none |
+| `Label` | `StemboxBjArrow` | `Text={AR}; SizePolicy=min,me; Alignment=left&#124;vcenter` | none |
 ### stembox_pad_bl.xml
 Source: [stembox_pad_bl.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_pad_bl.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
 | `WidgetGroup` | `StemboxBlCell` | `Layout=horizontal; SizePolicy=me,me` | `[Channel{chanNum}],beatloop_{SIZE}_enabled → highlight` |
-| `Label` | `StemboxBlIcon` | `Text=⟳; SizePolicy=min,me; Alignment=center` | — |
-| `Label` | `StemboxBlNum` | `Text={LBL}; SizePolicy=me,me; Alignment=center` | — |
+| `Label` | `StemboxBlIcon` | `Text=⟳; SizePolicy=min,me; Alignment=center` | none |
+| `Label` | `StemboxBlNum` | `Text={LBL}; SizePolicy=me,me; Alignment=center` | none |
 All direct bindings, including anonymous wrappers: `[Channel{chanNum}],beatloop_{SIZE}_enabled → highlight`.
 ### stembox_pad_fx.xml
 Source: [stembox_pad_fx.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_pad_fx.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `StemboxFxCell` | `StemboxFxCell` | `SizePolicy=me,me; Slot={SLOT}; PK={PK}` | — |
+| `StemboxFxCell` | `StemboxFxCell` | `SizePolicy=me,me; Slot={SLOT}; PK={PK}` | none |
 ### stembox_pad_ks.xml
 Source: [stembox_pad_ks.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_pad_ks.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
 | `WidgetGroup` | `StemboxKsCell` | `Layout=horizontal; SizePolicy=me,me` | `[Stembox],{PK} → highlight` |
-| `Label` | `{ICO}` | `Text={IC}; SizePolicy=min,me; Alignment=center` | — |
-| `Label` | `StemboxKsNum` | `Text={LBL}; SizePolicy=me,me; Alignment=center` | — |
+| `Label` | `{ICO}` | `Text={IC}; SizePolicy=min,me; Alignment=center` | none |
+| `Label` | `StemboxKsNum` | `Text={LBL}; SizePolicy=me,me; Alignment=center` | none |
 All direct bindings, including anonymous wrappers: `[Stembox],{PK} → highlight`.
 ### stembox_pad_label.xml
 Source: [stembox_pad_label.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_pad_label.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `WidgetGroup` | `StemboxPadModeCell` | `Layout=vertical; SizePolicy=me,me` | — |
-| `Label` | `StemboxPadModeLabel` | `Text={T}; SizePolicy=me,me; Alignment=center` | — |
+| `WidgetGroup` | `StemboxPadModeCell` | `Layout=vertical; SizePolicy=me,me` | none |
+| `Label` | `StemboxPadModeLabel` | `Text={T}; SizePolicy=me,me; Alignment=center` | none |
 ### stembox_pad_num.xml
 Source: [stembox_pad_num.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_pad_num.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
 | `WidgetGroup` | `StemboxPadNum` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],{PK} → highlight` |
-| `Label` | `StemboxPadNumLabel` | `Text={N}; SizePolicy=me,me; Alignment=center` | — |
+| `Label` | `StemboxPadNumLabel` | `Text={N}; SizePolicy=me,me; Alignment=center` | none |
 All direct bindings, including anonymous wrappers: `[Stembox],{PK} → highlight`.
 ### stembox_pad_sampler.xml
 Source: [stembox_pad_sampler.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_pad_sampler.xml>).
@@ -577,14 +578,14 @@ Source: [stembox_pad_slim.xml](</Applications/Stembox.app/Contents/Resources/src
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
 | `WidgetGroup` | `StemboxPadSlim` | `Layout=horizontal; SizePolicy=me,me` | `[Stembox],{PK} → highlight` |
-| `HotcueButton` | `StemboxPadSlimChip` | `Group=[Channel{chanNum}]; Hotcue={n}; MinimumSize=20,4; MaximumSize=20,4; SizePolicy=f,f; NumberStates=3; State.Text=` | — |
+| `HotcueButton` | `StemboxPadSlimChip` | `Group=[Channel{chanNum}]; Hotcue={n}; MinimumSize=20,4; MaximumSize=20,4; SizePolicy=f,f; NumberStates=3; State.Text=` | none |
 All direct bindings, including anonymous wrappers: `[Stembox],{PK} → highlight`.
 ### stembox_pad_stem.xml
 Source: [stembox_pad_stem.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_pad_stem.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
 | `WidgetGroup` | `StemboxSampCell` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],{PK} → highlight` |
-| `Label` | `StemboxSampNum` | `Text={LBL}; SizePolicy=me,me; Alignment=center` | — |
+| `Label` | `StemboxSampNum` | `Text={LBL}; SizePolicy=me,me; Alignment=center` | none |
 All direct bindings, including anonymous wrappers: `[Stembox],{PK} → highlight`.
 ### stembox_padfx_cells.xml
 Source: [stembox_padfx_cells.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_padfx_cells.xml>).
@@ -595,23 +596,23 @@ Template instantiations: `stembox_pad_fx.xml: PK=padpress_{chanNum}_1, SLOT=1`; 
 Source: [stembox_samp_row.xml](</Applications/Stembox.app/Contents/Resources/src/interface-stembox/dispositions/stembox_samp_row.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `StemboxSampRow` | `StemboxSampRow` | `SizePolicy=me,me; Deck={Deck}; PadBase={PadBase}` | — |
+| `StemboxSampRow` | `StemboxSampRow` | `SizePolicy=me,me; Deck={Deck}; PadBase={PadBase}` | none |
 ### stembox-racine.xml
 Source: [stembox-racine.xml](</Applications/Stembox.app/Contents/Resources/src/substrat/dispositions/stembox-racine.xml>).
 | Widget type | ObjectName | Declared properties | Direct ConfigKeys |
 | --- | --- | --- | --- |
-| `WidgetGroup` | `StemboxRoot` | `Layout=vertical; SizePolicy=me,me` | — |
-| `WidgetGroup` | `StemboxNavRowWrap` | `Layout=vertical; Size=0me,46f` | — |
+| `WidgetGroup` | `StemboxRoot` | `Layout=vertical; SizePolicy=me,me` | none |
+| `WidgetGroup` | `StemboxNavRowWrap` | `Layout=vertical; Size=0me,46f` | none |
 | `WidgetGroup` | `StemboxNavRowLarge` | `Layout=horizontal; Size=0me,46f` | `[Stembox],mix_mode → visible NOT` |
-| `WidgetGroup` | `StemboxNavEdgePad` | `Size=192f,0me` | — |
+| `WidgetGroup` | `StemboxNavEdgePad` | `Size=192f,0me` | none |
 | `PushButton` | `StemboxNavExit` | `SizePolicy=me,me; NumberStates=2; State.Text=EXIT` | `[Stembox],exit_request → left` |
 | `PushButton` | `StemboxNavMenu` | `SizePolicy=me,me; NumberStates=2; State.Text=MENU` | `[Stembox],show_preferences → left; [Stembox],show_preferences → state` |
 | `PushButton` | `StemboxNavBrowse` | `SizePolicy=me,me; NumberStates=2; State.Text=BROWSE` | `[Stembox],browse_full → left; [Stembox],browse_lit_full → state` |
 | `PushButton` | `StemboxNavPlaylist` | `SizePolicy=me,me; NumberStates=2; State.Text=TAG LIST` | `[Stembox],playlist_full → left; [Stembox],playlist_mode → state` |
 | `PushButton` | `StemboxNavDisplay` | `SizePolicy=me,me; NumberStates=2; State.Text=SEARCH` | `[Stembox],search_full → left; [Stembox],search_mode → state` |
 | `WidgetGroup` | `StemboxNavRow` | `Layout=horizontal; Size=0me,46f` | `[Stembox],mix_mode → visible` |
-| `WidgetGroup` | `StemboxNavDivider` | `Size=40f,0me; SizePolicy=f,me` | — |
-| `WidgetGroup` | `StemboxBody` | `Layout=stacked; SizePolicy=me,me` | — |
+| `WidgetGroup` | `StemboxNavDivider` | `Size=40f,0me; SizePolicy=f,me` | none |
+| `WidgetGroup` | `StemboxBody` | `Layout=stacked; SizePolicy=me,me` | none |
 | `WidgetGroup` | `StemboxBodyLarge` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],mix_mode → visible NOT` |
 | `WidgetGroup` | `StemboxBodySplit` | `Layout=vertical; SizePolicy=me,me` | `[Stembox],mix_mode → visible` |
 All direct bindings, including anonymous wrappers: `[Stembox],mix_mode → visible NOT`; `[Stembox],exit_request → LeftButton`; `[Stembox],show_preferences → LeftButton`; `[Stembox],show_preferences → state`; `[Stembox],browse_full → LeftButton`; `[Stembox],browse_lit_full → state`; `[Stembox],playlist_full → LeftButton`; `[Stembox],playlist_mode → state`; `[Stembox],search_full → LeftButton`; `[Stembox],search_mode → state`; `[Stembox],mix_mode → visible`.
@@ -859,55 +860,55 @@ Source directory: `docs/REFERENCES-VISUELLES/icones/theme` under the resource ro
 | `skins/LateNight/stembox_logo_24px.svg` | `78 × 24` | `0 0 78 24` | No literal paint found |
 | `stembox-icon-logo-christmas.svg` | `236 × 48` | `0 0 236 48` | No literal paint found |
 | `stembox-icon-logo-symbolic.svg` | `236 × 48` | `0 0 236 48` | No literal paint found |
-| `stembox_back.svg` | — | `0 0 24 24` | `#9a9a9a`, `none` |
-| `stembox_blank.svg` | — | `0 0 22 44` | No literal paint found |
-| `stembox_burger.svg` | — | `0 0 24 24` | `#cfcfcf` |
-| `stembox_burger_on.svg` | — | `0 0 24 24` | `#0e92d9` |
-| `stembox_check.svg` | — | `0 0 24 24` | `#ffffff` |
-| `stembox_close.svg` | — | `0 0 24 24` | `#d0d0d0`, `none` |
-| `stembox_cuewave_left.svg` | — | `0 0 22 44` | `#e08a2a`, `none` |
-| `stembox_cuewave_right.svg` | — | `0 0 22 44` | `#e08a2a`, `none` |
-| `stembox_fontsize.svg` | — | `0 0 54 26` | `#dcdcdc`, `#ffffff`, `none` |
-| `stembox_fontsize_0.svg` | — | `0 0 86 70` | `#3a3a3a`, `#8f8f8f`, `#ffffff`, `none` |
-| `stembox_fontsize_1.svg` | — | `0 0 86 70` | `#3a3a3a`, `#8f8f8f`, `#ffffff`, `none` |
-| `stembox_fontsize_2.svg` | — | `0 0 86 70` | `#3a3a3a`, `#8f8f8f`, `#ffffff`, `none` |
-| `stembox_hdr_album.svg` | — | `0 0 219 212` | `#cfcfcf` |
-| `stembox_hdr_artist.svg` | — | `0 0 231 196` | `#cfcfcf` |
-| `stembox_hdr_key.svg` | — | `0 0 235 214` | `#cfcfcf` |
-| `stembox_hdr_track.svg` | — | `0 0 169 213` | `#cfcfcf` |
-| `stembox_ic_album.svg` | — | `0 0 219 212` | `#cfcfcf` |
-| `stembox_ic_artist.svg` | — | `0 0 231 196` | `#cfcfcf` |
-| `stembox_ic_key.svg` | — | `0 0 235 214` | `#cfcfcf` |
-| `stembox_ic_playlist.svg` | — | `0 0 220 213` | `#cfcfcf` |
-| `stembox_kb_back.svg` | — | `0 0 94 80` | `#2e2e2e`, `#ffffff`, `none` |
-| `stembox_kb_back_frame.svg` | — | `0 0 80 80` | `#2e2e2e`, `none` |
-| `stembox_kb_back_x.svg` | — | `0 0 44 30` | `#ffffff`, `none` |
-| `stembox_list.svg` | — | `0 0 220 213` | `#cfcfcf` |
+| `stembox_back.svg` | none | `0 0 24 24` | `#9a9a9a`, `none` |
+| `stembox_blank.svg` | none | `0 0 22 44` | No literal paint found |
+| `stembox_burger.svg` | none | `0 0 24 24` | `#cfcfcf` |
+| `stembox_burger_on.svg` | none | `0 0 24 24` | `#0e92d9` |
+| `stembox_check.svg` | none | `0 0 24 24` | `#ffffff` |
+| `stembox_close.svg` | none | `0 0 24 24` | `#d0d0d0`, `none` |
+| `stembox_cuewave_left.svg` | none | `0 0 22 44` | `#e08a2a`, `none` |
+| `stembox_cuewave_right.svg` | none | `0 0 22 44` | `#e08a2a`, `none` |
+| `stembox_fontsize.svg` | none | `0 0 54 26` | `#dcdcdc`, `#ffffff`, `none` |
+| `stembox_fontsize_0.svg` | none | `0 0 86 70` | `#3a3a3a`, `#8f8f8f`, `#ffffff`, `none` |
+| `stembox_fontsize_1.svg` | none | `0 0 86 70` | `#3a3a3a`, `#8f8f8f`, `#ffffff`, `none` |
+| `stembox_fontsize_2.svg` | none | `0 0 86 70` | `#3a3a3a`, `#8f8f8f`, `#ffffff`, `none` |
+| `stembox_hdr_album.svg` | none | `0 0 219 212` | `#cfcfcf` |
+| `stembox_hdr_artist.svg` | none | `0 0 231 196` | `#cfcfcf` |
+| `stembox_hdr_key.svg` | none | `0 0 235 214` | `#cfcfcf` |
+| `stembox_hdr_track.svg` | none | `0 0 169 213` | `#cfcfcf` |
+| `stembox_ic_album.svg` | none | `0 0 219 212` | `#cfcfcf` |
+| `stembox_ic_artist.svg` | none | `0 0 231 196` | `#cfcfcf` |
+| `stembox_ic_key.svg` | none | `0 0 235 214` | `#cfcfcf` |
+| `stembox_ic_playlist.svg` | none | `0 0 220 213` | `#cfcfcf` |
+| `stembox_kb_back.svg` | none | `0 0 94 80` | `#2e2e2e`, `#ffffff`, `none` |
+| `stembox_kb_back_frame.svg` | none | `0 0 80 80` | `#2e2e2e`, `none` |
+| `stembox_kb_back_x.svg` | none | `0 0 44 30` | `#ffffff`, `none` |
+| `stembox_list.svg` | none | `0 0 220 213` | `#cfcfcf` |
 | `stembox_logo.svg` | `340 × 136` | `0 0 340 136` | No literal paint found |
-| `stembox_nav_album.svg` | — | `-27.38 -26.50 273.75 265.00` | `#cfcfcf` |
-| `stembox_nav_album_on.svg` | — | `-27.38 -26.50 273.75 265.00` | `#ffffff` |
-| `stembox_nav_artist.svg` | — | `-28.88 -24.50 288.75 245.00` | `#cfcfcf` |
-| `stembox_nav_artist_on.svg` | — | `-28.88 -24.50 288.75 245.00` | `#ffffff` |
-| `stembox_nav_folder.svg` | — | `-28.62 -25.00 286.25 250.00` | `#cfcfcf` |
-| `stembox_nav_folder_on.svg` | — | `-28.62 -25.00 286.25 250.00` | `#41d158` |
-| `stembox_nav_history.svg` | — | `-27.50 -26.25 275.00 262.50` | `#cfcfcf` |
-| `stembox_nav_history_on.svg` | — | `-27.50 -26.25 275.00 262.50` | `#ffffff` |
-| `stembox_nav_key.svg` | — | `-29.38 -26.75 293.75 267.50` | `#cfcfcf` |
-| `stembox_nav_key_on.svg` | — | `-29.38 -26.75 293.75 267.50` | `#ffffff` |
-| `stembox_nav_matching.svg` | — | `-25.62 -25.62 256.25 256.25` | `#cfcfcf` |
-| `stembox_nav_matching_on.svg` | — | `-25.62 -25.62 256.25 256.25` | `#ffffff` |
-| `stembox_nav_playlist.svg` | — | `-27.50 -26.62 275.00 266.25` | `#cfcfcf` |
-| `stembox_nav_playlist_on.svg` | — | `-27.50 -26.62 275.00 266.25` | `#ffffff` |
-| `stembox_nav_search.svg` | — | `0 0 230 214` | `#cfcfcf` |
-| `stembox_nav_search_on.svg` | — | `0 0 230 214` | `#ffffff` |
-| `stembox_nav_track.svg` | — | `-26.12 -26.62 261.25 266.25` | `#cfcfcf` |
-| `stembox_nav_track_on.svg` | — | `-26.12 -26.62 261.25 266.25` | `#ffffff` |
+| `stembox_nav_album.svg` | none | `-27.38 -26.50 273.75 265.00` | `#cfcfcf` |
+| `stembox_nav_album_on.svg` | none | `-27.38 -26.50 273.75 265.00` | `#ffffff` |
+| `stembox_nav_artist.svg` | none | `-28.88 -24.50 288.75 245.00` | `#cfcfcf` |
+| `stembox_nav_artist_on.svg` | none | `-28.88 -24.50 288.75 245.00` | `#ffffff` |
+| `stembox_nav_folder.svg` | none | `-28.62 -25.00 286.25 250.00` | `#cfcfcf` |
+| `stembox_nav_folder_on.svg` | none | `-28.62 -25.00 286.25 250.00` | `#41d158` |
+| `stembox_nav_history.svg` | none | `-27.50 -26.25 275.00 262.50` | `#cfcfcf` |
+| `stembox_nav_history_on.svg` | none | `-27.50 -26.25 275.00 262.50` | `#ffffff` |
+| `stembox_nav_key.svg` | none | `-29.38 -26.75 293.75 267.50` | `#cfcfcf` |
+| `stembox_nav_key_on.svg` | none | `-29.38 -26.75 293.75 267.50` | `#ffffff` |
+| `stembox_nav_matching.svg` | none | `-25.62 -25.62 256.25 256.25` | `#cfcfcf` |
+| `stembox_nav_matching_on.svg` | none | `-25.62 -25.62 256.25 256.25` | `#ffffff` |
+| `stembox_nav_playlist.svg` | none | `-27.50 -26.62 275.00 266.25` | `#cfcfcf` |
+| `stembox_nav_playlist_on.svg` | none | `-27.50 -26.62 275.00 266.25` | `#ffffff` |
+| `stembox_nav_search.svg` | none | `0 0 230 214` | `#cfcfcf` |
+| `stembox_nav_search_on.svg` | none | `0 0 230 214` | `#ffffff` |
+| `stembox_nav_track.svg` | none | `-26.12 -26.62 261.25 266.25` | `#cfcfcf` |
+| `stembox_nav_track_on.svg` | none | `-26.12 -26.62 261.25 266.25` | `#ffffff` |
 | `stembox_note.svg` | `327.000000pt × 439.000000pt` | `0 0 327.000000 439.000000` | `#ffffff`, `none` |
-| `stembox_prefs.svg` | — | `0 0 24 24` | `#cfcfcf` |
+| `stembox_prefs.svg` | none | `0 0 24 24` | `#cfcfcf` |
 | `stembox_search_icon.svg` | `38 × 24` | `0 0 38 24` | `#ffffff`, `none` |
 | `stembox_stems.svg` | `18 × 18` | `0 0 18 18` | `#ffffff` |
 | `stembox_stems_rose.svg` | `18 × 18` | `0 0 18 18` | `#EF5DA8` |
-| `stembox_usb.svg` | — | `0 0 32 32` | `#ffffff`, `none` |
+| `stembox_usb.svg` | none | `0 0 32 32` | `#ffffff`, `none` |
 | `templates/logo_stembox.svg` | `359.981 × 437.632` | `0 0 359.981 437.632` | No literal paint found |
 White versus gray navigation variants use `_on` filenames. Most normal nav icons are `#cfcfcf`, active icons `#ffffff`; the unused folder active variant is `#41d158`. Stem icons are `18×18`, white or rose `#EF5DA8`. Cue-wave arcs are `#e08a2a`. Preferences include dark and light icon sets for display, pads, recording, crossfader, controllers, effects, settings, Stembox, about, and minimize, plus `ic_stembox_symbolic`. These icon categories do not prove complete preference-page controls or page dimensions.
 

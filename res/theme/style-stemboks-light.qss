@@ -1,0 +1,94 @@
+/* Stemboks dark theme — recreated from observed Stembox 1.8.9 screenshots
+   and the shipped style-stembox.qss object names/colors. */
+* { font-family: "Open Sans"; color: #141414; }
+QMainWindow, QWidget { background-color: #f2f2f2; }
+
+/* Top navigation */
+#StemboxRoot { background-color: #f2f2f2; }
+#StemboxNavRowWrap { background-color: #e0e0e0; }
+#StemboxNavRow, #StemboxNavRowLarge { background-color: #e0e0e0; padding-left: 6px; padding-right: 6px; }
+#StemboxNavExit, #StemboxNavMenu, #StemboxNavBrowse, #StemboxNavPlaylist, #StemboxNavDisplay {
+  background-color: #d5d5d5; color: #222222; border: none; border-radius: 3px;
+  font-size: 12px; font-weight: bold; padding: 8px 0px;
+}
+#StemboxNavExit:hover, #StemboxNavMenu:hover, #StemboxNavBrowse:hover,
+#StemboxNavPlaylist:hover, #StemboxNavDisplay:hover { background-color: #3a3a3a; color: #000000; }
+#StemboxNavExit[lit="true"], #StemboxNavMenu[lit="true"], #StemboxNavBrowse[lit="true"],
+#StemboxNavPlaylist[lit="true"], #StemboxNavDisplay[lit="true"] { color: #29b6f6; }
+
+/* Deck bars */
+#StemboxDeck { background-color: #141414; border-top: 1px solid #262626; }
+#TitleText { font-weight: bold; font-size: 14px; color: #000000; }
+#StemboxTimeBig { font-size: 34px; font-weight: bold; color: #000000; }
+#StemboxBpmBig { font-size: 30px; font-weight: bold; color: #000000; }
+#StemboxCaption { font-size: 10px; color: #9a9a9a; font-weight: bold; }
+#StemboxInfoBox { background-color: #dddddd; border: 1px solid #333333; border-radius: 3px; }
+#StemboxNotLoaded { color: #ff2d20; font-size: 13px; font-weight: bold; }
+#DeckCueBtn, #DeckMtBtn { background: transparent; color: #ff9800; border: 1px solid #ff9800; border-radius: 2px; font-size: 11px; font-weight: bold; padding: 3px 10px; }
+#DeckSyncBtn, #DeckColorFxBtn { background: transparent; color: #2196f3; border: 1px solid #2196f3; border-radius: 2px; font-size: 11px; font-weight: bold; padding: 3px 10px; }
+#DeckQuantBtn { background: transparent; color: #ff2d20; border: 1px solid #ff2d20; border-radius: 2px; font-size: 10px; font-weight: bold; padding: 2px 6px; }
+#DeckCueBtn:on, #DeckMtBtn:on { background-color: #ff9800; color: #f2f2f2; }
+#DeckSyncBtn:on, #DeckColorFxBtn:on { background-color: #2196f3; color: #000000; }
+#DeckQuantBtn:on { background-color: #ff2d20; color: #000000; }
+#DeckTempoRange { background: transparent; color: #43a047; border: 1px solid #43a047; border-radius: 3px; font-size: 12px; font-weight: bold; padding: 2px 8px; }
+#StemboxPad { background-color: #dddddd; color: #8a8a8a; border: 1px solid #2c2c2c; border-radius: 4px; font-size: 11px; text-align: left; padding-left: 6px; min-height: 34px; }
+#StemboxPad:hover { background-color: #262626; color: #000000; }
+#StemboxPad[set="true"] { background-color: #37474f; color: #000000; border-color: #546e7a; }
+#StemboxPadMode { background-color: #dddddd; color: #9a9a9a; border: 1px solid #2c2c2c; border-radius: 3px; font-size: 10px; font-weight: bold; padding: 3px 6px; }
+#StemboxPadMode:on { background-color: #1a79eb; color: #000000; border-color: #1a79eb; }
+
+/* Divider between MIX (top) and LIBRARY (bottom) */
+#StemboxMixLibDivider { background-color: #f5f5f5; min-height: 6px; max-height: 6px; }
+
+/* Library / SOURCE */
+#LibraryContainer { background-color: #eef0f3; }
+#StemboxSourceBar, #StemboxSourceHeaderRow { background-color: #141414; }
+#StemboxSourceHeader { background-color: #141414; color: #000000; font-size: 22px; font-weight: bold; padding-left: 24px; }
+#StemboxStemsManagerBtn, #StemboxPastSessionsBtn {
+  background-color: #e0e0e0; color: #222222; border: 1px solid #2f2f2f; border-radius: 6px;
+  font-size: 13px; font-weight: bold; padding: 8px 18px;
+}
+#StemboxStemsManagerBtn:hover, #StemboxPastSessionsBtn:hover { background-color: #2d7ff9; color: #000000; border-color: #2d7ff9; }
+#StemboxSourceDiagBtn { background-color: #e0e0e0; color: #9a9a9a; border: 1px solid #2f2f2f; border-radius: 11px; margin: 4px; font-size: 13px; font-weight: bold; }
+#StemboxSourceDiagBtn:hover { background-color: #2d7ff9; color: #000000; border-color: #2d7ff9; }
+#StemboxUsbTile { background-color: #1a79eb; color: #000000; font-weight: bold; }
+QListWidget { background-color: #141414; border: none; outline: none; }
+QListWidget::item { padding: 14px 12px; border-bottom: 1px solid #262626; color: #141414; }
+QListWidget::item:selected { background-color: #1f2a3a; color: #000000; }
+QTableWidget { background-color: #f2f2f2; alternate-background-color: #dddddd; border: none; gridline-color: #262626; }
+QTableWidget::item { padding: 8px; }
+QTableWidget::item:selected { background-color: #1a79eb; color: #000000; }
+QHeaderView::section { background-color: #d5d5d5; color: #222222; border: none; border-right: 1px solid #dddddd; padding: 6px; font-size: 11px; font-weight: bold; }
+QLineEdit { background-color: #f2f2f2; border: 2px solid #00838f; border-radius: 3px; padding: 8px 30px 8px 10px; font-size: 15px; color: #000000; }
+#StemboxKeyboardKey { background-color: #333333; color: #000000; border: none; border-radius: 6px; font-size: 16px; padding: 14px 0px; }
+#StemboxKeyboardKey:hover { background-color: #444444; }
+
+/* Preferences */
+#StemboxPrefs { background-color: #eef0f3; }
+#StemboxPrefsSidebar { background-color: #e6e9ee; }
+#StemboxPrefsSidebar::item { padding: 14px 16px; border-radius: 6px; margin: 4px 8px; color: #141414; font-size: 14px; }
+#StemboxPrefsSidebar::item:selected { background-color: #1a79eb; color: #000000; }
+#StemboxPrefsCaption { color: #8a93a3; font-size: 12px; }
+QPushButton[segment="true"] { background-color: #1d2836; color: #9fb2c8; border: none; padding: 10px 18px; font-size: 13px; font-weight: bold; }
+QPushButton[segment="true"]:on, QPushButton[segment="true"]:checked { background-color: #1a79eb; color: #000000; }
+QPushButton#StemboxEffectsTab { background-color: #1d2836; color: #9fb2c8; border: none; padding: 10px 18px; font-weight: bold; }
+QPushButton#StemboxEffectsTab:checked { background-color: #1a79eb; color: #000000; }
+QPushButton#StemboxEffectsTab:hover { background-color: #24313d; color: #000000; }
+QComboBox { background-color: #1d232e; color: #141414; border: none; border-radius: 4px; padding: 8px; }
+QSlider::groove:horizontal { height: 4px; background: #2b3442; border-radius: 2px; }
+QSlider::groove:vertical { width: 4px; background: #2b3442; border-radius: 2px; }
+QSlider::handle:horizontal, QSlider::handle:vertical { background: #1a79eb; width: 18px; height: 18px; border-radius: 3px; margin: -7px 0; }
+#StemboxRecordBtn { background: transparent; color: #141414; border: 2px solid #ff2d20; border-radius: 4px; font-size: 14px; font-weight: bold; padding: 10px 20px; }
+#StemboxRecordBtn:on { background-color: #ff2d20; color: #000000; }
+#StemboxAboutCompany { color: #141414; font-size: 16px; font-weight: bold; }
+#StemboxAboutLine { color: #aab1bb; font-size: 14px; }
+#StemboxAboutMuted { color: #6a6f78; font-size: 13px; }
+#StemboxAboutSmall { color: #5c626b; font-size: 12px; }
+
+/* Generic dark button + scrollbar */
+QPushButton { background-color: #232a36; color: #141414; border: none; border-radius: 4px; padding: 7px 14px; }
+QPushButton:hover { background-color: #2d3646; }
+QScrollBar:vertical { background: #141414; width: 10px; }
+QScrollBar::handle:vertical { background: #3a3a3a; border-radius: 5px; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QToolTip { background-color: #1d2836; color: #000000; border: 1px solid #2d7ff9; }
