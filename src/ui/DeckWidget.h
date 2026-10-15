@@ -1,9 +1,14 @@
 #pragma once
 #include <QWidget>
 
+#include <QLabel>
+#include <QPushButton>
+
+namespace stemboks {
+
 class Deck;
-class QLabel;
-class QPushButton;
+
+
 
 // CDJ-style deck bar as in Stembox's stembox_cdj_deck.xml + stembox_deck_bottom.xml:
 // top strip (artwork disc, BPM/KEY/TIME boxes, info), main row (PLAYER n, TRACK --,
@@ -30,3 +35,5 @@ private:
     void openGridEdit();
     bool eventFilter(QObject* obj, QEvent* event) override;
 };
+
+} // namespace stemboks

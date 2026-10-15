@@ -34,6 +34,8 @@
 #include <QWindow>
 #include <QtConcurrent>
 
+namespace stemboks {
+
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setWindowTitle("Stemboks"); setAcceptDrops(true); resize(1440, 900);
     auto* root = new QWidget; root->setObjectName("StemboxRoot"); setCentralWidget(root);
@@ -55,6 +57,44 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     });
     connect(&AppSettings::instance(), &AppSettings::changed, this, [this](const QString&, const QString&) {
         if (!m_applyingSettings) ControlRegistry::instance().set("app.settingsDirty", 1);
+    });
+    for (int i = 0; i < kNumDecks; ++i) {
+        auto* deck = AudioEngine::instance().deck(i);
+        connect(deck, &Deck::metadataChanged, this, [deck] {
+            if (const auto track = deck->track()) {
+                auto& library = Library::instance();
+                const qint64 id = library.addOrUpdateTrack(track->info);
+                library.setAnalysis(id, track->analysis.bpm, track->analysis.firstBeatSec, track->analysis.camelot());
+            }
+        });
+        connect(deck, &Deck::trackLoaded, this, [this, deck, i] {
+            const auto track = deck->track();
+            if (!track) return;
+            auto& library = Library::instance();
+            const qint64 id = library.addOrUpdateTrack(track->info);
+            library.setAnalysis(id, track->analysis.bpm, track->analysis.firstBeatSec, track->analysis.camelot());
+            library.setStemsReady(id, track->hasStems);
+            library.recordPlay(id);
+            if (ControlRegistry::instance().getBool("app.tagRemovePlayed")) {
+                for (const auto& t : library.tagList()) if (t.id == id) { library.toggleTag(id); break; }
+            }
+            selectDeck(i);
+        });
+    }
+    connect(&ControlRegistry::instance(), &ControlRegistry::changed, this, [this](const QString& name, double value) {
+        if (value == 0 || !name.startsWith("library.")) return;
+        if (name == "library.moveVertical") {
+            if (m_library->page() == LibraryWidget::Hidden) m_library->showPage(LibraryWidget::Browse);
+            m_body->setCurrentWidget(m_library);
+            m_library->navigate(int(value));
+        } else if (name == "library.moveFocusForward" || name == "library.moveFocusBackward") {
+            m_body->setCurrentWidget(m_library);
+            m_library->changeBrowserFocus(name.endsWith("Forward"));
+        } else if (name.startsWith("library.loadDeck.") || name.startsWith("library.loadPlayDeck.")) {
+            const int deck = name.section('.', -1).toInt() - 1;
+            if (name.startsWith("library.loadPlayDeck.")) ControlRegistry::instance().setSilent(deckKey(deck, "load.preview"), 1);
+            m_library->loadSelected(deck);
+        }
     });
     auto* hotcueSave = new QTimer(this); hotcueSave->setSingleShot(true); hotcueSave->setInterval(300);
     connect(hotcueSave, &QTimer::timeout, this, &MainWindow::saveHotcues);
@@ -223,69 +263,39 @@ void MainWindow::applySettingsToRegistry() {
     for (int i = 0; i < 8; ++i) {
         QString path = s.get(g, QString("sampler_%1_path").arg(i + 1));
         if (path.isEmpty() && i >= 4) path = ":/drums/" + drums[i - 4] + ".wav";
-        if (path == m_samplerPaths[i]) continue; m_samplerPaths[i] = path;
-        if (path.isEmpty()) { AudioEngine::instance().loadSampler(i, {}, {}); continue; }
-        auto* watcher = new QFutureWatcher<AudioBufferPtr>(this);
-        connect(watcher, &QFutureWatcher<AudioBufferPtr>::finished, this, [this, watcher, i, path] {
-            if (m_samplerPaths[i] == path) AudioEngine::instance().loadSampler(i, watcher->result(), QFileInfo(path).completeBaseName()); watcher->deleteLater();
-        });
-        const int rate = AudioEngine::instance().sampleRate();
-        watcher->setFuture(QtConcurrent::run([path, rate] {
-            if (!path.startsWith(":/")) return Decoder::decodeFile(path, rate);
-            QFile resource(path); QTemporaryFile temp; temp.setFileTemplate(QDir::tempPath() + "/stemboks-drum-XXXXXX.wav");
-            if (!resource.open(QIODevice::ReadOnly) || !temp.open()) return AudioBufferPtr{};
-            temp.write(resource.readAll()); temp.flush(); return Decoder::decodeFile(temp.fileName(), rate);
-        }));
+        if (path == m_samplerPaths[i]) continue;
+        m_samplerPaths[i] = path;
+        AudioEngine::instance().loadSampler(i, path);
     }
     if (m_mixPage) updateSecondScreen(); s.save(); r.setSilent("app.settingsDirty", 0); m_applyingSettings = false;
 }
 
 void MainWindow::loadTrackToDeck(int index, const QString& path) {
-    if (index < 0 || index >= 4 || path.isEmpty()) return;
-    auto* deck = AudioEngine::instance().deck(index); auto& registry = ControlRegistry::instance();
+    if (index < 0 || index >= kNumDecks || path.isEmpty()) return;
+    auto* deck = AudioEngine::instance().deck(index);
+    auto& registry = ControlRegistry::instance();
     if (deck->playing() && registry.getBool("app.loadLock", true)) {
-        QMessageBox::information(this, "Deck locked", QString("Pause deck %1 before loading a track. Change this in Settings.").arg(index + 1)); return;
+        QMessageBox::information(this, "Deck locked", QString("Pause deck %1 before loading a track. Change this in Settings.").arg(index + 1));
+        return;
     }
-    const int generation = ++m_loadGeneration[index], rate = AudioEngine::instance().sampleRate();
-    const bool preview = registry.getBool(deckKey(index, "load.preview")); registry.setSilent(deckKey(index, "load.preview"), 0);
+    const bool preview = registry.getBool(deckKey(index, "load.preview"));
+    registry.setSilent(deckKey(index, "load.preview"), 0);
     if (!preview && registry.getBool(deckKey(index, "preview.active"))) {
         registry.set(deckKey(index, "level.volume"), registry.get(deckKey(index, "preview.previousVolume"), 1));
         registry.set(deckKey(index, "level.pfl"), registry.get(deckKey(index, "preview.previousPfl")));
         registry.setSilent(deckKey(index, "preview.active"), 0);
     }
-    registry.setString(deckKey(index, "load.status"), "Loading...");
-    struct Result { LoadedTrackPtr track; QString error; };
-    auto* watcher = new QFutureWatcher<Result>(this);
-    connect(watcher, &QFutureWatcher<Result>::finished, this, [this, watcher, index, generation, preview] {
-        const auto result = watcher->result(); watcher->deleteLater(); if (m_loadGeneration[index] != generation) return;
-        auto& r = ControlRegistry::instance();
-        if (!result.track) { r.setString(deckKey(index, "load.status"), result.error); QMessageBox::warning(this, "Cannot load track", result.error); return; }
-        auto* deck = AudioEngine::instance().deck(index);
-        if (deck->playing() && r.getBool("app.loadLock", true)) { r.setString(deckKey(index, "load.status"), "Load cancelled: deck is playing"); return; }
-        if (const auto previous = deck->track()) Library::instance().saveHotcues(previous->info.path, previous->hotcues, previous->cueSec);
-        auto& library = Library::instance(); const auto& track = result.track;
-        library.loadHotcues(track->info.path, &track->hotcues, &track->cueSec);
-        const qint64 id = library.addOrUpdateTrack(track->info); library.setAnalysis(id, track->analysis.bpm, track->analysis.firstBeatSec, track->analysis.camelot());
-        library.setStemsReady(id, track->hasStems); library.recordPlay(id);
-        deck->loadTrack(track); if (preview) deck->play(); r.setString(deckKey(index, "load.status"), "Ready"); selectDeck(index);
-        if (r.getBool("app.tagRemovePlayed")) { for (const auto& t : library.tagList()) if (t.id == id) { library.toggleTag(id); break; } }
-    });
-    watcher->setFuture(QtConcurrent::run([path, rate] {
-        Result result; auto track = std::make_shared<LoadedTrack>();
-        track->audio = Decoder::decodeFile(path, rate, &result.error);
-        if (!track->audio || track->audio->isEmpty()) { if (result.error.isEmpty()) result.error = "No audio could be decoded: " + path; return result; }
-        track->info = Decoder::readTags(path); track->info.path = path; track->info.durationSec = track->audio->durationSec();
-        if (track->info.title.isEmpty()) track->info.title = QFileInfo(path).completeBaseName();
-        WaveformData cached; const bool cache = Analysis::loadWaveformCache(path, &cached);
-        track->analysis = Analysis::analyze(*track->audio);
-        if (cache) track->analysis.waveform = cached; else Analysis::saveWaveformCache(path, track->analysis.waveform);
-        if (track->info.bpm > 0) track->analysis.bpm = track->info.bpm;
-        track->hasStems = StemManager::loadStems(path, rate, &track->stems); result.track = track; return result;
-    }));
+    registry.setSilent(deckKey(index, "load.autoplay"), preview);
+    deck->loadPath(path);
+    selectDeck(index);
 }
 
 void MainWindow::saveHotcues() {
-    for (int i = 0; i < 4; ++i) if (const auto track = AudioEngine::instance().deck(i)->track()) Library::instance().saveHotcues(track->info.path, track->hotcues, track->cueSec);
+    for (int i = 0; i < kNumDecks; ++i) {
+        auto* deck = AudioEngine::instance().deck(i);
+        deck->persistCues();
+        if (const auto track = deck->track()) Library::instance().saveHotcues(track->info.path, track->hotcues, track->cueSec);
+    }
 }
 void MainWindow::updateSecondScreen() {
     const auto& s = AppSettings::instance(); const auto screens = QApplication::screens();
@@ -333,3 +343,5 @@ void MainWindow::keyReleaseEvent(QKeyEvent* event) {
     }
     QMainWindow::keyReleaseEvent(event);
 }
+
+} // namespace stemboks

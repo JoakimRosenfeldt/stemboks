@@ -1,7 +1,7 @@
 #include "PrefsWidget.h"
 #include "UiHelpers.h"
 #include "../engine/AudioEngine.h"
-#include "../controllers/ControllerManager.h"
+#include "../engine/Effects.h"
 #include <QApplication>
 #include <QButtonGroup>
 #include <QComboBox>
@@ -19,6 +19,8 @@
 #include <QScreen>
 #include <QStandardPaths>
 #include <functional>
+
+namespace stemboks {
 
 namespace {
 QWidget* makeSegment(const QStringList& labels, int current, const std::function<void(int)>& callback) {
@@ -93,29 +95,23 @@ QWidget* PrefsWidget::pageStembox() {
 QWidget* PrefsWidget::pageControls() {
     auto* p = new QWidget; auto* f = form(p); const QString g = "[Stembox]";
     auto* controllers = Ui::label("", "StemboxAboutLine"); controllers->setWordWrap(true);
-    const auto updateControllers = [controllers] { const auto names = ControllerManager::instance().connectedDevices(); controllers->setText(names.isEmpty() ? "No controller connected" : names.join('\n')); };
-    updateControllers(); connect(&ControllerManager::instance(), &ControllerManager::devicesChanged, p, updateControllers); f->addRow("Controllers", controllers);
-    auto* api = new QComboBox; api->addItems(AudioEngine::instance().apiNames()); api->setEnabled(false); f->addRow("Sound output API", api);
-    const auto devices = AudioEngine::instance().outputDevices(); QStringList names{"---"}; for (const auto& device : devices) names.append(device.name);
-    combo(f, "Sample rate", g, "sound_sample_rate", {"44100", "48000", "88200", "96000"}, "44100");
-    auto* main = combo(f, "Main device", g, "sound_main_device", names, "---");
-    combo(f, "Main channels", g, "sound_main_channels", {"", "1-2", "3-4", "5-6", "7-8"});
-    auto* head = combo(f, "Headphones, CUE", g, "sound_headphones_device", names, "---");
-    combo(f, "Headphone channels", g, "sound_headphones_channels", {"", "1-2", "3-4", "5-6", "7-8"});
-    auto* buffer = new QWidget; auto* bl = new QVBoxLayout(buffer); bl->setContentsMargins(0, 0, 0, 0);
-    auto rebuild = [bl] {
-        while (auto* item = bl->takeAt(0)) { delete item->widget(); delete item; }
-        auto& s = AppSettings::instance(); const int rate = std::max(1, s.getInt("[Stembox]", "sound_sample_rate", 44100));
-        const QVector<int> frames{256,512,1024,2048}; QStringList labels;
-        for (int n : frames) labels << QString("%1 ms").arg(n * 1000.0 / rate, 0, 'f', 1);
-        bl->addWidget(makeSegment(labels, std::max(0, int(frames.indexOf(s.getInt("[Stembox]", "sound_buffer_frames", 512)))), [frames](int index) { Ui::setting("[Stembox]", "sound_buffer_frames", frames[index]); }));
-    }; rebuild();
-    connect(&AppSettings::instance(), &AppSettings::changed, buffer, [rebuild](const QString&, const QString& key) { if (key == "sound_sample_rate") rebuild(); }); f->addRow("Audio buffer", buffer);
-    auto* rescan = Ui::button("Rescan devices"); f->addRow(rescan);
-    connect(rescan, &QPushButton::clicked, p, [main, head] {
-        for (auto* c : {main, head}) { const QString selected = c->currentText(); c->clear(); c->addItem("---"); for (const auto& d : AudioEngine::instance().outputDevices()) c->addItem(d.name); c->setCurrentText(selected); }
-    });
-    f->addRow(Ui::label("Restart required after changing audio devices, sample rate or buffer.", "StemboxPrefsCaption")); return p;
+    const auto updateControllers = [controllers] {
+        const auto names = AudioEngine::instance().connectedControllers();
+        controllers->setText(names.isEmpty() ? "No controller connected" : names.join('\n'));
+    };
+    updateControllers();
+    connect(&AudioEngine::instance(), &AudioEngine::devicesChanged, p, updateControllers);
+    f->addRow("Controllers", controllers);
+    auto* configure = Ui::button("Configure sound and controllers");
+    connect(configure, &QPushButton::clicked, p, [p] { AudioEngine::instance().showPreferences(p); });
+    f->addRow(configure);
+    auto* caption = Ui::label("Choose audio devices, output channels, latency and controller mappings in Mixxx preferences.", "StemboxPrefsCaption");
+    caption->setWordWrap(true);
+    f->addRow(caption);
+    auto* rescan = Ui::button("Rescan controllers");
+    connect(rescan, &QPushButton::clicked, p, [] { AudioEngine::instance().rescanControllers(); });
+    f->addRow(rescan);
+    return p;
 }
 
 QWidget* PrefsWidget::pagePads() {
@@ -240,5 +236,7 @@ QWidget* PrefsWidget::pageAbout() {
     f->addRow(Ui::label("Clean-room clone of the Stembox DJ interface.", "StemboxAboutLine"));
     auto* note = Ui::label("Independent implementation. No affiliation with Mixystore or Stembox.", "StemboxAboutMuted"); note->setWordWrap(true); f->addRow(note);
     auto* license = Ui::label("GNU GPL version 3. You may use, modify and redistribute this software under the included LICENSE. No warranty.", "StemboxAboutLine"); license->setWordWrap(true); f->addRow(license);
-    auto* libs = Ui::label("Qt 6 Widgets / SQLite\nFFmpeg / miniaudio\nRtMidi / hidapi\nONNX Runtime, optional stem separation", "StemboxAboutSmall"); f->addRow("Libraries", libs); return p;
+    auto* libs = Ui::label("Mixxx 2.6 engine / Qt 6 / SQLite\nPortAudio / PortMidi / hidapi\nSoundTouch / Rubber Band / FFmpeg\nONNX Runtime, optional stem separation", "StemboxAboutSmall"); f->addRow("Libraries", libs); return p;
 }
+
+} // namespace stemboks

@@ -1,7 +1,12 @@
 #pragma once
 #include <QWidget>
 
-class QStackedWidget; class QListWidget;
+#include <QListWidget>
+#include <QStackedWidget>
+
+namespace stemboks {
+
+
 
 // MENU screen: sidebar (Stembox / Controls / Pads / Mixer / Recording /
 // Display / Settings / About) with segmented controls exactly as the
@@ -20,3 +25,5 @@ private:
     QWidget* pageMixer(); QWidget* pageRecording(); QWidget* pageDisplay();
     QWidget* pageSettings(); QWidget* pageAbout();
 };
+
+} // namespace stemboks

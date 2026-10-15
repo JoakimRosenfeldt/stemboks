@@ -1,6 +1,8 @@
 #include "ControlRegistry.h"
 #include <QMutexLocker>
 
+namespace stemboks {
+
 ControlRegistry& ControlRegistry::instance() {
     static ControlRegistry inst;
     return inst;
@@ -38,3 +40,5 @@ void ControlRegistry::setString(const QString& name, const QString& value) {
     }
     emit stringChanged(name, value);
 }
+
+} // namespace stemboks

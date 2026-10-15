@@ -4,6 +4,8 @@
 #include <QString>
 #include <QVector>
 
+namespace stemboks {
+
 namespace RekordboxUsb {
 
 bool isRekordboxUsb(const QString& volumeRoot);
@@ -35,3 +37,5 @@ bool parse(const QString& volumeRoot, Library* out, QString* error = nullptr);
 QString trackAbsolutePath(const QString& volumeRoot, const RbTrack& t);
 
 }
+
+} // namespace stemboks

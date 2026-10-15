@@ -5,6 +5,8 @@
 #include <QSaveFile>
 #include <QJsonDocument>
 
+namespace stemboks {
+
 AppSettings& AppSettings::instance() { static AppSettings s; return s; }
 
 QString AppSettings::dataDir() {
@@ -54,3 +56,5 @@ void AppSettings::set(const QString& group, const QString& key, const QString& v
     m_groups[group] = g;
     emit changed(group, key);
 }
+
+} // namespace stemboks

@@ -15,6 +15,8 @@
 #include <numeric>
 #include <vector>
 
+namespace stemboks {
+
 namespace {
 constexpr double pi = 3.14159265358979323846;
 constexpr quint32 cacheMagic = 0x4f4e4445, cacheVersion = 1;
@@ -218,3 +220,5 @@ double Analysis::quantizeToBeat(double position, double first, double bpm) {
     double length = beatLengthSec(bpm);
     return length > 0 && std::isfinite(position) && std::isfinite(first) ? first+std::round(beatAt(position, first, bpm))*length : position;
 }
+
+} // namespace stemboks

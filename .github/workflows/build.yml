@@ -1,24 +1,44 @@
 name: build
 on: [push, pull_request]
+
 jobs:
   macos:
-    runs-on: macos-14
+    runs-on: macos-15
+    env:
+      BUILDENV_BASEPATH: ${{ github.workspace }}/buildenv
     steps:
       - uses: actions/checkout@v4
-      - name: Install deps
-        run: brew install qt ffmpeg hidapi pkg-config onnxruntime
+      - uses: actions/checkout@v4
+        with:
+          repository: mixxxdj/mixxx
+          ref: 527211c16adede822c262998dcb81089f81c87bf
+          path: build-tools
+          sparse-checkout: tools
+      - uses: actions/cache@v4
+        with:
+          path: buildenv
+          key: mixxx-2.6-a39faac-macos-${{ runner.arch }}
+      - name: Install Mixxx dependencies
+        run: bash build-tools/tools/macos_release_buildenv.sh setup
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_PREFIX_PATH="$(brew --prefix qt);$(brew --prefix)"
+        run: >-
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DMIXXX_VCPKG_ROOT="$MIXXX_VCPKG_ROOT"
+          -DCMAKE_TOOLCHAIN_FILE="$MIXXX_VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_TARGET_TRIPLET="$VCPKG_TARGET_TRIPLET"
+          -DVCPKG_MANIFEST_MODE=OFF -DSTATIC_DEPS=ON
       - name: Build
-        run: cmake --build build -j3
+        run: cmake --build build --target stemboks -j3
+      - name: Check executable
+        run: build/stemboks.app/Contents/MacOS/stemboks --help
       - name: Package
-        run: |
-          $(brew --prefix qt)/bin/macdeployqt build/stemboks.app -dmg || true
-          ls build
+        run: ditto -c -k --sequesterRsrc --keepParent build/stemboks.app stemboks-macos.zip
       - uses: actions/upload-artifact@v4
-        with: { name: stemboks-macos, path: build/*.dmg }
+        with: { name: stemboks-macos, path: stemboks-macos.zip }
+
   linux:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - runner: ubuntu-24.04
@@ -28,45 +48,68 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install deps
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-base-dev qt6-svg-dev libqt6sql6-sqlite \
-            libavformat-dev libavcodec-dev libavutil-dev libswresample-dev \
-            libhidapi-dev libasound2-dev libpulse-dev libudev-dev libusb-1.0-0-dev libxkbcommon-dev pkg-config
-      - name: Install optional ONNX Runtime
-        run: sudo apt-get install -y libonnxruntime-dev || true
+          sudo apt-get install -y ninja-build pkg-config qt6-base-dev qt6-base-private-dev \
+            qt6-declarative-dev qt6-shadertools-dev qt6-5compat-dev qt6-svg-dev \
+            libqt6opengl6-dev libqt6sql6-sqlite libavformat-dev libavcodec-dev \
+            libavutil-dev libswresample-dev libchromaprint-dev libebur128-dev \
+            libfftw3-dev libflac-dev libgtest-dev libhidapi-dev libmp3lame-dev \
+            libportmidi-dev libprotobuf-dev protobuf-compiler librubberband-dev \
+            libsndfile1-dev libsoundtouch-dev libsqlite3-dev libtag1-dev \
+            libudev-dev libusb-1.0-0-dev libgl1-mesa-dev portaudio19-dev
       - name: Configure
-        run: cmake -S . -B build
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
       - name: Build
-        run: cmake --build build -j3
-      - name: Smoke test (offscreen)
-        run: QT_QPA_PLATFORM=offscreen timeout 10 ./build/stemboks --help || test $? -eq 124
+        run: cmake --build build --target stemboks -j3
+      - name: Check executable
+        run: QT_QPA_PLATFORM=offscreen ./build/stemboks --help
+      - name: Package
+        run: tar -C build -czf stemboks-linux-${{ matrix.arch }}.tar.gz stemboks mixxx
       - uses: actions/upload-artifact@v4
         with:
           name: stemboks-linux-${{ matrix.arch }}
-          path: build/stemboks
+          path: stemboks-linux-${{ matrix.arch }}.tar.gz
+
   windows:
     runs-on: windows-latest
-    defaults:
-      run:
-        shell: msys2 {0}
+    env:
+      BUILDENV_BASEPATH: ${{ github.workspace }}\buildenv
     steps:
       - uses: actions/checkout@v4
-      - uses: msys2/setup-msys2@v2
+      - uses: actions/checkout@v4
         with:
-          msystem: MINGW64
-          install: >-
-            mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
-            mingw-w64-x86_64-qt6-base mingw-w64-x86_64-qt6-svg
-            mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-hidapi mingw-w64-x86_64-pkgconf
+          repository: mixxxdj/mixxx
+          ref: 527211c16adede822c262998dcb81089f81c87bf
+          path: build-tools
+          sparse-checkout: tools
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: actions/cache@v4
+        with:
+          path: buildenv
+          key: mixxx-2.6-a39faac-windows-x64
+      - name: Install Mixxx dependencies
+        shell: cmd
+        run: call build-tools\tools\windows_release_buildenv.bat setup
       - name: Configure
-        run: cmake -S . -B build -G Ninja
+        shell: cmd
+        run: >-
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DMIXXX_VCPKG_ROOT="%MIXXX_VCPKG_ROOT%"
+          -DCMAKE_TOOLCHAIN_FILE="%MIXXX_VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake"
+          -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET%
+          -DVCPKG_MANIFEST_MODE=OFF -DSTATIC_DEPS=ON
       - name: Build
-        run: cmake --build build -j3
+        run: cmake --build build --target stemboks -j3
+      - name: Check executable
+        run: build/stemboks.exe --help
       - name: Package
+        shell: pwsh
         run: |
-          mkdir -p dist && cp build/stemboks.exe dist/
-          windeployqt6 dist/stemboks.exe || true
+          New-Item -ItemType Directory dist
+          Copy-Item build/stemboks.exe dist/
+          Copy-Item build/mixxx dist/ -Recurse
+          Get-ChildItem build -Filter *.dll | Copy-Item -Destination dist
       - uses: actions/upload-artifact@v4
         with: { name: stemboks-windows, path: dist }

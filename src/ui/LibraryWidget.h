@@ -3,7 +3,16 @@
 #include <QWidget>
 #include <QSet>
 
-class QStackedWidget; class QListWidget; class QTableWidget; class QLabel; class QLineEdit;
+#include <QLabel>
+#include <QLineEdit>
+#include <QListWidget>
+#include <QPushButton>
+#include <QStackedWidget>
+#include <QTableWidget>
+
+namespace stemboks {
+
+
 
 // Library area replacing the waveform zone: SOURCE screen (USB devices +
 // STEMBOKS LIBRARY, inspector, STEMS MANAGER button), drill-down browse
@@ -19,6 +28,8 @@ public:
     Page page() const { return m_page; }
     void loadSelected(int deck);
     void setTargetDeck(int deck);
+    void navigate(int steps);
+    void changeBrowserFocus(bool forward);
 signals:
     void loadToDeck(int deck, const QString& path);
     void openStemsManager();
@@ -40,8 +51,10 @@ private:
     QString m_sourceRoot;
     QSet<QString> m_rekordboxImported;
     QWidget* m_tagRemove;
-    QVector<class QPushButton*> m_targets;
+    QVector<QPushButton*> m_targets;
     void buildSource(); void buildBrowse(); void buildSearch(); void buildKeyboard(bool azerty);
     void refreshSource(); void refreshGroups(); void showTracks(const QVector<LibraryTrack>& tracks, QTableWidget* table);
     void trackActivated(QTableWidget* table, int row);
 };
+
+} // namespace stemboks

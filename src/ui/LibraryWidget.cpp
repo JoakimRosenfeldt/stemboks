@@ -28,6 +28,8 @@
 #include <QMessageBox>
 #include <algorithm>
 
+namespace stemboks {
+
 bool importScannedLibraryTracks(const QVector<TrackInfo>& tracks, const QVector<bool>& stemsReady);
 namespace {
 struct ScannedTracks { QVector<TrackInfo> tracks; QVector<bool> stemsReady; };
@@ -349,6 +351,24 @@ void LibraryWidget::showTracks(const QVector<LibraryTrack>& tracks, QTableWidget
     }
 }
 
+void LibraryWidget::navigate(int steps) {
+    if (!steps) return;
+    if (m_page == Hidden) showPage(Browse);
+    if (m_page == Source) {
+        if (m_sourceList->count()) m_sourceList->setCurrentRow(std::clamp(m_sourceList->currentRow() + steps, 0, m_sourceList->count() - 1));
+    } else if (m_groupList->hasFocus() && m_page != Search) {
+        if (m_groupList->count()) m_groupList->setCurrentRow(std::clamp(m_groupList->currentRow() + steps, 0, m_groupList->count() - 1));
+    } else {
+        auto* table = m_page == Search ? m_searchTable : m_table;
+        if (table->rowCount()) table->selectRow(std::clamp(table->currentRow() + steps, 0, table->rowCount() - 1));
+    }
+}
+
+void LibraryWidget::changeBrowserFocus(bool forward) {
+    if (m_page == Hidden) showPage(Browse);
+    focusNextPrevChild(forward);
+}
+
 void LibraryWidget::setTargetDeck(int deck) {
     if (deck < 0 || deck >= 4) return; m_targetDeck = deck;
     for (int i = 0; i < m_targets.size(); ++i) m_targets[i]->setChecked(i == deck);
@@ -368,3 +388,5 @@ void LibraryWidget::showPage(Page page) {
     else if (page == Search) { m_stack->setCurrentIndex(2); showTracks(Library::instance().allTracks(m_searchEdit->text()), m_searchTable); m_searchEdit->setFocus(); }
     else { m_stack->setCurrentIndex(1); if (m_category.isEmpty()) m_category = "PLAYLIST"; refreshGroups(); }
 }
+
+} // namespace stemboks

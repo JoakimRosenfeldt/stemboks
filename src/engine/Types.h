@@ -5,6 +5,8 @@
 #include <array>
 #include <memory>
 
+namespace stemboks {
+
 constexpr int kNumDecks = 4;
 constexpr int kNumStems = 4;          // vocals, drums, bass, other (HTDemucs order below)
 constexpr int kNumHotcues = 8;        // A-H
@@ -67,3 +69,5 @@ struct LoadedTrack {
     double loopInSec = -1.0, loopOutSec = -1.0;
 };
 using LoadedTrackPtr = std::shared_ptr<LoadedTrack>;
+
+} // namespace stemboks

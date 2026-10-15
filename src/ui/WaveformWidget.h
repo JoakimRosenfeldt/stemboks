@@ -2,6 +2,8 @@
 #include "../engine/Types.h"
 #include <QWidget>
 
+namespace stemboks {
+
 // Large scrolling waveform (BLUE / RGB / 3BAND), beatgrid ticks, hotcue markers,
 // loop region, play marker at LEFT or CENTER, track-end warning blink.
 class Deck;
@@ -25,3 +27,5 @@ private:
     double m_dragStartX = 0, m_dragStartSec = 0;
     double m_zoomSec = 12.0; // visible seconds in scrolling mode
 };
+
+} // namespace stemboks

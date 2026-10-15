@@ -1,90 +1,79 @@
 # Stemboks
 
-A clean-room clone of **Stembox 1.8.9** — the CDJ-style stem DJ player —
-reverse engineered from the installed macOS app with REA (see
-[docs/rea/](docs/rea/)) and rebuilt as a native Qt 6 / C++ application.
+A Stembox-style stem DJ player with a native Qt 6 interface and the Mixxx
+engine. Playback, sync, time stretching, effects, audio routing, recording,
+and controllers run through upstream Mixxx.
 
-![main window of the original](docs/rea/shots/main-window.png)
-
-## What it does
-
-- 4 decks (2 visible CDJ bars, Large/Split layouts), giant scrolling
-  waveforms (BLUE / RGB / 3BAND), beatgrid, key (Camelot) display.
-- Real-time stems: play any track as **drums / bass / other / vocals**
-  with per-stem mute and gain pads. Loads pre-separated stems
-  (`.stem.mp4` or sidecar `<name>.stems/` folder) and can separate new
-  tracks with an HTDemucs ONNX model (`stems-hdemucs-mmi-v1.onnx`) when
-  ONNX Runtime is available.
-- CDJ workflow: hotcues A–H, beat loops, beatjump, slip, reverse slip,
-  quantize, sync, master tempo (keylock), key shift, tempo ranges
-  ±6/10/16/100, vinyl brake/backspin.
-- Mixer: 3-band EQ (ISO/EQ), Color FX (filter, space, dub echo, crush,
-  pitch, noise), Beat FX + Pad FX (roll, echo, vinyl brake, reverb,
-  enigma jet, phaser, flanger, trans…), crossfader curves, 8-band master
-  EQ, auto gain, limiter, headphone cueing on a second output.
-- Library like the original: SOURCE screen for USB sticks, drill-down
-  browse (Playlist / Artist / Album / Key / Folder / History / Matching),
-  full-screen search with on-screen QWERTY/AZERTY keyboard, Tag List,
-  SQLite database, waveform/LUFS caches, TSV hotcue/grid sidecars.
-- Sampler (8 slots) + Drum Station kits, mix recording (WAV/MP3,
-  16/24/32-float), second-screen CDJ display, dark/light themes,
-  60 fps UI, interface scaling.
-- Controllers: MIDI + HID with Stembox's own `SBX_CONTROLLER_MAPPING 6`
-  text format. Ships mappings for Pioneer **DDJ-400, DDJ-800, DDJ-1000,
-  DDJ-FLX4, DDJ-FLX6, DDJ-FLX10, DDJ-GRV6**.
-
-## Platforms
-
-macOS (Apple Silicon/Intel), Windows x64, Linux x86-64, **Linux ARM64**.
-CI builds all four on every push (see Actions artifacts).
+Mixxx is pinned to 2.6 commit `527211c16adede822c262998dcb81089f81c87bf`.
+This development snapshot includes native four-stem playback. The original
+Stembox's exact Mixxx ancestry has not been identified. See
+[the integration design](docs/mixxx-migration.md) and
+[reverse-engineering evidence](docs/rea/).
 
 ## Build
 
-Dependencies: Qt 6 (Widgets/Sql/Svg/Network/Concurrent), FFmpeg
-(libavformat/codec/util/swresample), hidapi. RtMidi is fetched by CMake.
-ONNX Runtime is optional (stem separation).
+CMake fetches the complete Mixxx source and Microsoft GSL from archives with
+pinned SHA-256 hashes. The first build is larger than the previous custom
+engine. Use CMake 3.24 or later and a C++20 compiler.
+
+On macOS with Homebrew:
 
 ```sh
-# macOS
-brew install qt ffmpeg hidapi pkg-config
-cmake -S . -B build -DCMAKE_PREFIX_PATH="$(brew --prefix qt);$(brew --prefix)"
-cmake --build build -j
+brew install cmake ninja qtbase qtdeclarative qtsvg qt5compat qtshadertools \
+  qttranslations ffmpeg hidapi libusb portaudio portmidi chromaprint \
+  libebur128 fftw sound-touch taglib rubberband libsndfile protobuf googletest
+cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="$(brew --prefix)"
+cmake --build build --target stemboks -j3
 open build/stemboks.app
-
-# Linux (x86-64 and ARM64 alike)
-sudo apt install qt6-base-dev qt6-svg-dev libqt6sql6-sqlite \
-  libavformat-dev libavcodec-dev libavutil-dev libswresample-dev \
-  libhidapi-dev libasound2-dev libpulse-dev pkg-config
-cmake -S . -B build && cmake --build build -j
-./build/stemboks
-
-# Windows: use MSYS2 MINGW64 with the packages in .github/workflows/build.yml
 ```
 
-## Using stems
+Use a fresh build directory when upgrading from the previous implementation.
+Optional ONNX Runtime enables in-app stem separation.
 
-Put separated stems next to a track as `<track>.stems/drums.wav`,
-`bass.wav`, `other.wav`, `vocals.wav`, or play a Native Instruments
-`.stem.mp4`. To separate inside the app, open **BROWSE → STEMS MANAGER**,
-point it at an HTDemucs ONNX model, and queue tracks.
+On Ubuntu 24.04, x86-64 or ARM64:
 
-## Data locations
+```sh
+sudo apt install cmake ninja-build pkg-config qt6-base-dev qt6-base-private-dev \
+  qt6-declarative-dev qt6-shadertools-dev qt6-5compat-dev qt6-svg-dev \
+  libqt6opengl6-dev libqt6sql6-sqlite libavformat-dev libavcodec-dev \
+  libavutil-dev libswresample-dev libchromaprint-dev libebur128-dev \
+  libfftw3-dev libflac-dev libgtest-dev libhidapi-dev libmp3lame-dev \
+  libportmidi-dev libprotobuf-dev protobuf-compiler librubberband-dev \
+  libsndfile1-dev libsoundtouch-dev libsqlite3-dev libtag1-dev \
+  libudev-dev libusb-1.0-0-dev libgl1-mesa-dev portaudio19-dev
+cmake -S . -B build -G Ninja
+cmake --build build --target stemboks -j3
+./build/stemboks
+```
 
-Same layout as the original, under the platform app-data dir `stemboks/`:
-`library.db`, `usersettings.json` (same JSON shape), `mappings/`,
-`cache/ondes/*.onde`, `cache/sonie/*.lufs`, `hotcues-locaux.tsv`,
-`grilles-locales.tsv`, `historique/`.
+Windows uses MSVC 2022 or later and Mixxx's prebuilt release dependencies.
+The Windows job in [.github/workflows/build.yml](.github/workflows/build.yml)
+contains the complete configure and package procedure. CI builds macOS,
+Windows x64, Linux x86-64, and Linux ARM64.
 
-## Reverse-engineering notes
+## Use
 
-Everything in `docs/rea/` is evidence gathered from the installed app:
-binary inventory, UI inventory (28 skin templates + QSS), controller
-mapping format and control registry, database schema, and live
-screenshots of every screen. The code here is an original implementation
-of that observed behavior — no Stembox/Mixxx code or assets are included,
-except factual hardware MIDI numbers and the openly documented formats.
+Open **MENU → Controls → Configure sound and controllers** to select audio
+outputs, headphone channels, latency, and controller mappings in Mixxx's
+native preferences. The packaged resources include Mixxx's mappings and
+Stemboks compatibility presets for the seven Pioneer DDJ models.
+
+The existing interface retains four decks, hotcues, beat loops, beatjump,
+slip, quantize, sync, keylock, key shift, stem pads, sampler, library search,
+USB browsing, tag list, mix recording, and the second screen.
+
+Native `.stem.mp4` and `.stem.m4a` tracks load directly. Existing separated
+sidecars remain supported as `<track>.stems/drums.wav`, `bass.wav`,
+`other.wav`, and `vocals.wav`. The first load prepares a cached lossless stem
+container for Mixxx. **BROWSE → STEMS MANAGER** separates new tracks when
+ONNX Runtime and an HTDemucs model are available.
+
+The product library and appearance settings remain in the existing Stemboks
+data directory. Mixxx engine settings and its track database use the isolated
+`mixxx-engine` subdirectory. Installed Stembox and Mixxx data are untouched.
 
 ## License
 
-GPL-3.0-or-later. OpenSans fonts: SIL OFL 1.1. miniaudio: public
-domain/MIT-0. RtMidi: MIT-like. FFmpeg/Qt/hidapi under their own licenses.
+GPL-3.0-or-later. Mixxx source and notices remain in the pinned upstream
+archive. Packaged applications include its resources and license. Open Sans
+uses SIL OFL 1.1. Other dependencies retain their upstream licenses.

@@ -1,0 +1,108 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -48,7 +48,8 @@
+   cmake_policy(SET CMP0135 NEW)
+ endif()
+ 
+-if(((APPLE AND NOT IOS) OR WIN32) AND NOT IS_DIRECTORY "${MIXXX_VCPKG_ROOT}")
++option(MIXXX_USE_SYSTEM_DEPS "Use system dependencies instead of the Mixxx build environment" OFF)
++if(((APPLE AND NOT IOS) OR WIN32) AND NOT IS_DIRECTORY "${MIXXX_VCPKG_ROOT}" AND NOT MIXXX_USE_SYSTEM_DEPS)
+   if(NOT DEFINED BUILDENV_BASEPATH)
+     if(DEFINED ENV{BUILDENV_BASEPATH})
+       set(BUILDENV_BASEPATH "$ENV{BUILDENV_BASEPATH}")
+@@ -4861,7 +4862,11 @@
+   target_link_libraries(mixxx-lib PRIVATE Modplug::Modplug)
+ endif()
+ 
+-find_package(Microsoft.GSL CONFIG)
++if(TARGET Microsoft.GSL::GSL)
++  set(Microsoft.GSL_FOUND TRUE)
++else()
++  find_package(Microsoft.GSL CONFIG)
++endif()
+ if(Microsoft.GSL_FOUND)
+   target_link_libraries(mixxx-lib PRIVATE Microsoft.GSL::GSL)
+   if(QML)
+--- a/src/coreservices.cpp
++++ b/src/coreservices.cpp
+@@ -640,7 +640,8 @@
+ 
+     bool musicDirAdded = false;
+ 
+-    if (m_pTrackCollectionManager->internalCollection()->loadRootDirs().isEmpty()) {
++    if (!pApp->property("stemboksEmbedded").toBool() &&
++            m_pTrackCollectionManager->internalCollection()->loadRootDirs().isEmpty()) {
+ #if defined(Q_OS_IOS) || defined(Q_OS_WASM)
+         // On the web and iOS, we are running in a sandbox (a virtual file
+         // system on the web). Since we are generally limited to paths within
+--- a/src/mixer/basetrackplayer.h
++++ b/src/mixer/basetrackplayer.h
+@@ -71,6 +71,7 @@
+     void selectedStems(mixxx::StemChannelSelection stemMask);
+ #endif
+     void playerEmpty();
++    void loadFailed(TrackPointer track, const QString& reason);
+     void noVinylControlInputConfigured();
+     void trackRatingChanged(int rating);
+     void trackMenuChangeRequest(bool show);
+--- a/src/mixer/basetrackplayer.cpp
++++ b/src/mixer/basetrackplayer.cpp
+@@ -545,6 +545,7 @@
+     // was loaded before. Here we must unload the
+     // We must unload the track m_pLoadedTrack as well
+     if (pTrack == m_pLoadedTrack) {
++        emit loadFailed(pTrack, reason);
+         qDebug() << "Failed to load track" << pTrack->getFileInfo() << reason;
+         slotTrackLoaded(TrackPointer(), pTrack);
+     } else if (pTrack) {
+--- a/src/util/cmdlineargs.cpp
++++ b/src/util/cmdlineargs.cpp
+@@ -124,7 +124,8 @@
+ bool CmdlineArgs::parse(int argc, char** argv) {
+     // Some command line parameters needs to be evaluated before
+     // The QCoreApplication is initialized.
+-    DEBUG_ASSERT(!QCoreApplication::instance());
++    DEBUG_ASSERT(!QCoreApplication::instance() ||
++            QCoreApplication::instance()->property("stemboksEmbedded").toBool());
+     if (argc == 1) {
+         // Mixxx was run with the binary name only, nothing to do
+         return true;
+--- a/src/engine/controls/cuecontrol.h
++++ b/src/engine/controls/cuecontrol.h
+@@ -248,10 +248,14 @@
+     void cueGotoAndPlay(double v);
+     void cueGotoAndStop(double v);
+     void cuePreview(double v);
++#ifndef Q_MOC_RUN
+     FRIEND_TEST(CueControlTest, SeekOnSetCueCDJ);
++#endif
+     void cueCDJ(double v);
+     void cueDenon(double v);
++#ifndef Q_MOC_RUN
+     FRIEND_TEST(CueControlTest, SeekOnSetCuePlay);
++#endif
+     void cuePlay(double v);
+     void cueDefault(double v);
+     void pause(double v);
+--- a/src/effects/chains/outputeffectchain.cpp
++++ b/src/effects/chains/outputeffectchain.cpp
+@@ -12,6 +12,7 @@
+                   SignalProcessingStage::Postfader) {
+     addEffectSlot("[OutputEffectRack_[Master]_Effect1]");
+     m_effectSlots[0]->setEnabled(true);
++    addEffectSlot("[OutputEffectRack_[Master]_Effect2]");
+ 
+     // Register the main channel
+     const ChannelHandleAndGroup* mainHandleAndGroup = nullptr;
+--- a/src/mixer/playermanager.h
++++ b/src/mixer/playermanager.h
+@@ -230,7 +230,9 @@
+     void slotChangeNumAuxiliaries(double v);
+ 
+   protected slots:
++#ifndef Q_MOC_RUN
+     FRIEND_TEST(PlayerManagerTest, UnEjectInvalidTrackIdTest);
++#endif
+     void slotSaveEjectedTrack(TrackPointer track);
+ 
+   private slots:

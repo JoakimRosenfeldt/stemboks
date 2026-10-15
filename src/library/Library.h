@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QSqlDatabase>
 
+namespace stemboks {
+
 struct LibraryTrack {
     qint64 id = -1;
     QString path, title, artist, album, genre;
@@ -53,6 +55,7 @@ public:
     void saveHotcues(const QString& path, const std::array<Hotcue, kNumHotcues>& cues, double cueSec);
     void loadHotcues(const QString& path, std::array<Hotcue, kNumHotcues>* cues, double* cueSec);
     void saveGrid(const QString& path, double bpm, double firstBeatSec);
+    bool loadGrid(const QString& path, double* bpm, double* firstBeatSec) const;
 
     int scanDirectory(const QString& dir);    // returns new tracks found (tags only, fast)
     static QStringList removableVolumes();    // USB sticks for SOURCE screen
@@ -67,3 +70,5 @@ private:
     void migrate();
     QVector<LibraryTrack> queryTracks(const QString& where, const QVariantList& binds = {}) const;
 };
+
+} // namespace stemboks

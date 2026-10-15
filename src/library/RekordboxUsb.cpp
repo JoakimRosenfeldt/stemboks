@@ -18,6 +18,8 @@
 #include <limits>
 #include <utility>
 
+namespace stemboks {
+
 namespace RekordboxUsb {
 namespace {
 
@@ -355,3 +357,5 @@ QString trackAbsolutePath(const QString& volumeRoot, const RbTrack& t)
 }
 
 }
+
+} // namespace stemboks

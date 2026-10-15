@@ -7,6 +7,8 @@
 #include <QSvgRenderer>
 #include <cmath>
 
+namespace stemboks {
+
 WaveformWidget::WaveformWidget(Deck* deck, QWidget* parent) : QWidget(parent), m_deck(deck) {
     setMinimumSize(0, 64); setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setCursor(Qt::PointingHandCursor);
@@ -109,3 +111,5 @@ void WaveformWidget::mouseMoveEvent(QMouseEvent* e) {
 void WaveformWidget::mouseReleaseEvent(QMouseEvent*) {
     m_dragging = false; ControlRegistry::instance().set(deckKey(m_deck->index(), "jog.touch"), 0);
 }
+
+} // namespace stemboks

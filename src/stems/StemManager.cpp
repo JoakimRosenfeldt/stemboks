@@ -23,6 +23,8 @@
 #include <onnxruntime_cxx_api.h>
 #endif
 
+namespace stemboks {
+
 namespace {
 const std::array<QString, kNumStems> names = {"drums", "bass", "other", "vocals"};
 const QString unavailable = QStringLiteral("ONNX Runtime/model not available — place stems-hdemucs-mmi-v1.onnx in models folder");
@@ -460,3 +462,5 @@ void StemManager::pump() {
     });
     watcher->setFuture(QtConcurrent::run([path, folder, model, fallback, progress] { return runJob(path, folder, model, fallback, progress); }));
 }
+
+} // namespace stemboks

@@ -3,14 +3,19 @@
 #include "control/ControlRegistry.h"
 #include "engine/AudioEngine.h"
 #include "library/Library.h"
-#include "controllers/ControllerManager.h"
+#include <mixxxapplication.h>
+#include <QMessageBox>
 #include <QApplication>
 #include <QFontDatabase>
 #include <QFile>
 #include <QCommandLineParser>
 
+using namespace stemboks;
+
 int main(int argc, char** argv) {
-    QApplication app(argc, argv);
+    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+    MixxxApplication app(argc, argv);
+    app.setProperty("stemboksEmbedded", true);
     app.setApplicationName(QStringLiteral("stemboks"));
     app.setApplicationDisplayName(QStringLiteral("Stemboks"));
     app.setOrganizationName(QStringLiteral("stemboks"));
@@ -35,15 +40,20 @@ int main(int argc, char** argv) {
     if (qss.open(QIODevice::ReadOnly)) app.setStyleSheet(QString::fromUtf8(qss.readAll()));
 
     Library::instance().open();
-    AudioEngine::instance().start();
-    ControllerManager::instance().start();
+    if (!AudioEngine::instance().start()) {
+        QMessageBox::critical(nullptr, "Stemboks", "Mixxx could not initialize. Check the application log.");
+        return 1;
+    }
 
+    int rc;
+    {
     MainWindow w;
     w.show();
     if (parser.isSet(loadOpt))
         w.loadTrackToDeck(0, parser.value(loadOpt));
 
-    int rc = app.exec();
+    rc = app.exec();
+    }
     AppSettings::instance().save();
     AudioEngine::instance().stop();
     return rc;

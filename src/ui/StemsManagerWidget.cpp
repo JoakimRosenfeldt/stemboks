@@ -10,6 +10,8 @@
 #include <QListWidget>
 #include <QVBoxLayout>
 
+namespace stemboks {
+
 StemsManagerWidget::StemsManagerWidget(QWidget* parent) : QWidget(parent) {
     setObjectName("LibraryContainer"); auto* root = new QVBoxLayout(this);
     auto* header = new QHBoxLayout; auto* back = Ui::button("‹ BACK"); header->addWidget(back);
@@ -54,9 +56,11 @@ StemsManagerWidget::StemsManagerWidget(QWidget* parent) : QWidget(parent) {
 }
 void StemsManagerWidget::refresh() {
     QString why; const bool available = StemManager::instance().separationAvailable(&why);
-    m_modelStatus->setText(available ? "Model ready: " + StemManager::instance().modelPath() : "Separation unavailable: " + why);
+    m_modelStatus->setText(available ? QString("Model ready: %1").arg(StemManager::instance().modelPath()) : QString("Separation unavailable: %1").arg(why));
     m_list->clear(); for (const auto& job : StemManager::instance().jobs()) {
         auto* item = new QListWidgetItem(QString("%1\n%2   %3%").arg(QFileInfo(job.trackPath).fileName(), job.status).arg(job.progress), m_list);
         item->setToolTip(job.trackPath); item->setSizeHint(QSize(0, 66));
     }
 }
+
+} // namespace stemboks

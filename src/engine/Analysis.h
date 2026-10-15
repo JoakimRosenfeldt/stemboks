@@ -1,6 +1,8 @@
 #pragma once
 #include "Types.h"
 
+namespace stemboks {
+
 // Offline track analysis: BPM + beatgrid offset, musical key, 3-band waveform, loudness.
 namespace Analysis {
     AnalysisResult analyze(const AudioBuffer& audio);
@@ -15,3 +17,5 @@ namespace Analysis {
     double quantizeToBeat(double posSec, double firstBeatSec, double bpm);
     double beatAt(double posSec, double firstBeatSec, double bpm); // fractional beat number
 }
+
+} // namespace stemboks

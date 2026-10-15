@@ -15,6 +15,8 @@
 #include <QDebug>
 #include <algorithm>
 
+namespace stemboks {
+
 namespace {
 bool execute(QSqlDatabase db, const QString& sql, const QVariantList& binds = {}) {
     QSqlQuery q(db);
@@ -266,6 +268,16 @@ void Library::loadHotcues(const QString& path, std::array<Hotcue, kNumHotcues>* 
         if (!cueFound && cue && cueOk) *cue = storedCue;
     }
 }
+bool Library::loadGrid(const QString& path, double* bpm, double* firstBeatSec) const {
+    QSqlQuery query(m_db);
+    query.prepare("SELECT bpm,first_beat FROM grids WHERE path=?");
+    query.addBindValue(path);
+    if (!query.exec() || !query.next()) return false;
+    if (bpm) *bpm = query.value(0).toDouble();
+    if (firstBeatSec) *firstBeatSec = query.value(1).toDouble();
+    return true;
+}
+
 void Library::saveGrid(const QString& path, double bpm, double beat) {
     if (!m_db.transaction()) return;
     const bool ok = execute(m_db, "INSERT INTO grids(path,bpm,first_beat) VALUES(?,?,?) ON CONFLICT(path) DO UPDATE SET bpm=excluded.bpm,first_beat=excluded.first_beat", {path, bpm, beat})
@@ -308,3 +320,5 @@ QStringList Library::removableVolumes() {
     }
     paths.removeDuplicates(); paths.sort(); return paths;
 }
+
+} // namespace stemboks

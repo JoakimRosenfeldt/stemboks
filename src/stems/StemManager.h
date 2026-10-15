@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QQueue>
 
+namespace stemboks {
+
 // Stem discovery + separation queue.
 // Playback sources, in priority order (mirrors observed behavior):
 //  1. "<track>.stem.mp4" / .stem.m4a multi-stream file (NI Stems: stream0=mix,1..4=stems)
@@ -39,3 +41,5 @@ private:
     QVector<Job> m_jobs;
     bool m_running = false;
 };
+
+} // namespace stemboks

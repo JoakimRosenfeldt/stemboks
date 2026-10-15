@@ -14,6 +14,8 @@
 #include <QMouseEvent>
 #include "../library/Library.h"
 
+namespace stemboks {
+
 DeckWidget::DeckWidget(Deck* deck, QWidget* parent) : QWidget(parent), m_deck(deck), m_prefix(QString("deck.%1.").arg(deck->index() + 1)) {
     setObjectName("StemboxDeck"); setMinimumWidth(0);
     auto* root = new QVBoxLayout(this); root->setContentsMargins(5, 2, 5, 2); root->setSpacing(2);
@@ -128,7 +130,7 @@ void DeckWidget::triggerPad(int pad, bool release) {
             for (int i = 0; i < 4; ++i) r.set(m_prefix + "stems." + names[i] + ".mute", !alreadySolo && i != solo);
         }
     } else if (m_padMode == 5) {
-        if (!release) Ui::pulse(QString("sampler.%1.play").arg(pad + 1));
+        if (!release) r.toggle(QString("sampler.%1.play").arg(pad + 1));
     } else if (m_padMode == 6) {
         auto& s = AppSettings::instance(); const QString unit = QString("fx.unit.%1.").arg(m_deck->index() % 2 + 1);
         const bool toggle = s.getInt("[Stembox]", "padfx_type") == 1;
@@ -165,7 +167,8 @@ void DeckWidget::refresh() {
     m_tempoPct->setText(QString("TEMPO %1%").arg(r.get(m_prefix + "tempo.ratio", 1) * 100, 0, 'f', 1));
     m_tempoRange->setText(QString("±%1").arg(r.get(m_prefix + "tempo.range", 6)));
     const QString loadStatus = r.getString(m_prefix + "load.status");
-    m_status->setText(loadStatus == "Loading..." ? loadStatus : track ? (track->hasStems ? "STEMS READY" : title) : "Not Loaded.");
+    const QString engineStatus = r.getString("app.engineStatus");
+    m_status->setText(!loadStatus.isEmpty() && loadStatus != "Ready" ? loadStatus : !engineStatus.isEmpty() ? engineStatus : track ? (track->hasStems ? "STEMS READY" : title) : "Not Loaded.");
     m_status->setStyleSheet(track ? (track->hasStems ? "color:#66bb6a;" : "color:#b8b8b8;") : "color:#ff2d20;");
     m_trackNo->setText(track ? QString("TRACK\n%1").arg(m_deck->index() + 1) : "TRACK\n--");
     m_play->setText(QString("PLAYER %1\n%2").arg(m_deck->index() + 1).arg(m_deck->playing() ? "PAUSE" : "PLAY"));
@@ -261,8 +264,9 @@ void DeckWidget::openGridEdit() {
     root->addLayout(buttons);
 
     if (dlg.exec() != QDialog::Accepted) return;
-    track->analysis.bpm = bpm->value();
-    track->analysis.firstBeatSec = firstBeat->value();
+    m_deck->applyBeatgrid(bpm->value(), firstBeat->value());
     Library::instance().saveGrid(track->info.path, bpm->value(), firstBeat->value());
     ControlRegistry::instance().set(m_prefix + "grid.changed", 1);
 }
+
+} // namespace stemboks

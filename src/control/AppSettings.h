@@ -3,6 +3,8 @@
 #include <QJsonObject>
 #include <QString>
 
+namespace stemboks {
+
 // Persists settings in the same JSON shape Stembox uses:
 // { "format": "stembox-substrat-usersettings", "version": 1,
 //   "groupes": { "[Stembox]": {"mix_mode":"0", ...}, "[Mixer]": {...}, ... } }
@@ -31,3 +33,5 @@ private:
     AppSettings() = default;
     QJsonObject m_groups; // "groupes"
 };
+
+} // namespace stemboks

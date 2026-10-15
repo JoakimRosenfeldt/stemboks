@@ -19,6 +19,8 @@ def consumed(control):
         tail = match[2]
         if tail in literals:
             return True
+        if re.fullmatch(r"eq\.(high|mid|low)", tail):
+            return "eq." in literals
         if match := re.fullmatch(r"hotcue\.([1-8])\.(activate|set|clear|present)", tail):
             return "deck.%1.hotcue.%2." in literals and match[2] in literals
         if match := re.fullmatch(r"pads\.cell\.([1-8])\.press", tail):

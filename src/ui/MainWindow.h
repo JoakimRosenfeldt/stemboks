@@ -1,8 +1,14 @@
 #pragma once
 #include <QMainWindow>
 
+#include <QStackedWidget>
+#include <QTimer>
+#include <QVBoxLayout>
+
+namespace stemboks {
+
 class DeckWidget; class WaveformWidget; class LibraryWidget;
-class PrefsWidget; class StemsManagerWidget; class SecondScreen; class QTimer;
+class PrefsWidget; class StemsManagerWidget; class SecondScreen;
 
 // Root window in the shape of stembox-racine.xml: 46px nav (EXIT/MENU/BROWSE/
 // TAG LIST/SEARCH; in SPLIT mode two nav bars), body with stacked pages:
@@ -27,12 +33,12 @@ private:
     StemsManagerWidget* m_stems;
     SecondScreen* m_second = nullptr;
     QWidget *m_mixPage = nullptr, *m_navLarge = nullptr, *m_navSplit = nullptr;
-    class QStackedWidget* m_body;
+    QStackedWidget* m_body;
     QTimer* m_timer;
     QWidget *m_deckBars = nullptr, *m_mixerStrip = nullptr, *m_waveColumns = nullptr;
-    class QVBoxLayout* m_waveLayout = nullptr;
-    class QStackedWidget* m_barStacks[2];
-    class QStackedWidget* m_waveStacks[2];
+    QVBoxLayout* m_waveLayout = nullptr;
+    QStackedWidget* m_barStacks[2];
+    QStackedWidget* m_waveStacks[2];
     int m_selectedDeck = 0;
     int m_loadGeneration[4] = {};
     bool m_keyboardCue[2] = {};
@@ -44,3 +50,5 @@ private:
     void showMix(); void applySettingsToRegistry();
     void updateSecondScreen();
 };
+
+} // namespace stemboks

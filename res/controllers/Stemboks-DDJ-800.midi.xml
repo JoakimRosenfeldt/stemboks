@@ -1,0 +1,2699 @@
+<?xml version='1.0' encoding='utf-8'?>
+<MixxxControllerPreset schemaVersion="1" mixxxVersion="2.6">
+    <info>
+        <name>Stemboks Pioneer DDJ-800</name>
+        <author>Stemboks</author>
+        <description>Stemboks controls and pad pages through the native Mixxx controller engine.</description>
+    </info>
+    <controller id="DDJ-800">
+        <scriptfiles>
+            <file filename="Stemboks-sbx-common.js" functionprefix="" />
+            <file filename="Stemboks-DDJ-800-script.js" functionprefix="StemboksDDJ800" />
+        </scriptfiles>
+        <controls>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x0C</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x10</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x11</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x1A</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x1B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x1E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x20</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x35</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x36</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x3F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x4D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x54</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x58</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x5E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x5F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x69</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x6B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x6D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x80</status>
+                <midino>0x6F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x0C</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x10</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x11</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x1A</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x1B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x1E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x20</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x35</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x36</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x3F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x4D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x54</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x58</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x5E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x5F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x69</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x6B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x6D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x81</status>
+                <midino>0x6F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x0C</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x10</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x11</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x1A</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x1B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x1E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x20</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x35</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x36</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x3F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x4D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x54</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x58</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x5E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x5F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x69</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x6B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x6D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x82</status>
+                <midino>0x6F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x0C</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x10</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x11</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x1A</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x1B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x1E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x20</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x35</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x36</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x3F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x4D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x54</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x58</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x5E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x5F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x69</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x6B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x6D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x83</status>
+                <midino>0x6F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x84</status>
+                <midino>0x1C</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x84</status>
+                <midino>0x1D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x84</status>
+                <midino>0x1E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x84</status>
+                <midino>0x1F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x84</status>
+                <midino>0x21</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x84</status>
+                <midino>0x24</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x84</status>
+                <midino>0x27</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x84</status>
+                <midino>0x47</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x84</status>
+                <midino>0x4A</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x84</status>
+                <midino>0x4B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x86</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x87</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x87</status>
+                <midino>0x01</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x87</status>
+                <midino>0x02</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x87</status>
+                <midino>0x03</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x87</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x87</status>
+                <midino>0x05</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x87</status>
+                <midino>0x06</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x87</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x89</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x89</status>
+                <midino>0x01</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x89</status>
+                <midino>0x02</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x89</status>
+                <midino>0x03</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x89</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x89</status>
+                <midino>0x05</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x89</status>
+                <midino>0x06</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x89</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8B</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8B</status>
+                <midino>0x01</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8B</status>
+                <midino>0x02</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8B</status>
+                <midino>0x03</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8B</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8B</status>
+                <midino>0x05</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8B</status>
+                <midino>0x06</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8B</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8D</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8D</status>
+                <midino>0x01</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8D</status>
+                <midino>0x02</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8D</status>
+                <midino>0x03</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8D</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8D</status>
+                <midino>0x05</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8D</status>
+                <midino>0x06</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x8D</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x0C</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x10</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x11</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x1A</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x1B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x1E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x20</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x35</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x36</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x3F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x4D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x54</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x58</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x5E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x5F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x69</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x6B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x6D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x90</status>
+                <midino>0x6F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x0C</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x10</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x11</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x1A</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x1B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x1E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x20</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x35</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x36</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x3F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x4D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x54</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x58</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x5E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x5F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x69</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x6B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x6D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x91</status>
+                <midino>0x6F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x0C</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x10</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x11</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x1A</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x1B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x1E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x20</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x35</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x36</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x3F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x4D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x54</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x58</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x5E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x5F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x69</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x6B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x6D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x92</status>
+                <midino>0x6F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x0C</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x10</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x11</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x1A</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x1B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x1E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x20</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x35</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x36</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x3F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x4D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x54</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x58</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x5E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x5F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x69</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x6B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x6D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x93</status>
+                <midino>0x6F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x94</status>
+                <midino>0x1C</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x94</status>
+                <midino>0x1D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x94</status>
+                <midino>0x1E</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x94</status>
+                <midino>0x1F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x94</status>
+                <midino>0x21</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x94</status>
+                <midino>0x24</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x94</status>
+                <midino>0x27</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x94</status>
+                <midino>0x47</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x94</status>
+                <midino>0x4A</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x94</status>
+                <midino>0x4B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x96</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x97</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x97</status>
+                <midino>0x01</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x97</status>
+                <midino>0x02</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x97</status>
+                <midino>0x03</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x97</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x97</status>
+                <midino>0x05</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x97</status>
+                <midino>0x06</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x97</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x99</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x99</status>
+                <midino>0x01</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x99</status>
+                <midino>0x02</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x99</status>
+                <midino>0x03</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x99</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x99</status>
+                <midino>0x05</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x99</status>
+                <midino>0x06</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x99</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9B</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9B</status>
+                <midino>0x01</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9B</status>
+                <midino>0x02</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9B</status>
+                <midino>0x03</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9B</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9B</status>
+                <midino>0x05</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9B</status>
+                <midino>0x06</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9B</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9D</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9D</status>
+                <midino>0x01</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9D</status>
+                <midino>0x02</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9D</status>
+                <midino>0x03</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9D</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9D</status>
+                <midino>0x05</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9D</status>
+                <midino>0x06</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0x9D</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB0</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB0</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB0</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB0</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB0</status>
+                <midino>0x0F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB0</status>
+                <midino>0x13</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB0</status>
+                <midino>0x21</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB0</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB0</status>
+                <midino>0x23</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB1</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB1</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB1</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB1</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB1</status>
+                <midino>0x0F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB1</status>
+                <midino>0x13</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB1</status>
+                <midino>0x21</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB1</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB1</status>
+                <midino>0x23</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB2</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB2</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB2</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB2</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB2</status>
+                <midino>0x0F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB2</status>
+                <midino>0x13</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB2</status>
+                <midino>0x21</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB2</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB2</status>
+                <midino>0x23</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB3</status>
+                <midino>0x00</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB3</status>
+                <midino>0x04</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB3</status>
+                <midino>0x07</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB3</status>
+                <midino>0x0B</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB3</status>
+                <midino>0x0F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB3</status>
+                <midino>0x13</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB3</status>
+                <midino>0x21</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB3</status>
+                <midino>0x22</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB3</status>
+                <midino>0x23</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB4</status>
+                <midino>0x02</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB6</status>
+                <midino>0x0C</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB6</status>
+                <midino>0x0D</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB6</status>
+                <midino>0x17</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB6</status>
+                <midino>0x18</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB6</status>
+                <midino>0x19</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB6</status>
+                <midino>0x1A</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+            <control>
+                <group>[Stemboks]</group>
+                <key>StemboksDDJ800.input</key>
+                <status>0xB6</status>
+                <midino>0x1F</midino>
+                <options>
+                    <Script-Binding />
+                </options>
+            </control>
+        </controls>
+        <outputs />
+    </controller>
+</MixxxControllerPreset>

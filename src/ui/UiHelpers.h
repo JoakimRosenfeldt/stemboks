@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <cmath>
 
+namespace stemboks {
+
 namespace Ui {
 inline QString time(double seconds, bool hundredths = false) {
     const qint64 ticks = qint64(std::max(0.0, seconds) * 100);
@@ -48,3 +50,5 @@ inline void pulse(const QString& key) {
     auto& r = ControlRegistry::instance(); r.set(key, 0); r.set(key, 1);
 }
 }
+
+} // namespace stemboks

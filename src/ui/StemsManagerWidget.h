@@ -1,7 +1,12 @@
 #pragma once
 #include <QWidget>
 
-class QListWidget; class QLabel;
+#include <QLabel>
+#include <QListWidget>
+
+namespace stemboks {
+
+
 
 // STEMS MANAGER: destination (sidecar folder vs stems folder), model status,
 // queue of separation jobs with progress, add-files buttons.
@@ -15,3 +20,5 @@ private:
     QListWidget* m_list; QLabel* m_modelStatus;
     void refresh();
 };
+
+} // namespace stemboks
