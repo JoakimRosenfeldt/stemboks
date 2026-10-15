@@ -5,6 +5,8 @@
 
 namespace stemboks {
 
+namespace RekordboxUsb { struct Library; }
+
 struct LibraryTrack {
     qint64 id = -1;
     QString path, title, artist, album, genre;
@@ -46,6 +48,7 @@ public:
 
     qint64 trackIdForPath(const QString& path) const;
     qint64 addOrUpdateTrack(const TrackInfo& info);
+    bool importRekordbox(const QString& root, const RekordboxUsb::Library& usb, const QVector<bool>& stemsReady);
     void setAnalysis(qint64 trackId, double bpm, double firstBeat, const QString& keyText);
     void setStemsReady(qint64 trackId, bool ready);
     void recordPlay(qint64 trackId);

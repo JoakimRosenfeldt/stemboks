@@ -33,6 +33,7 @@ namespace stemboks {
 bool importScannedLibraryTracks(const QVector<TrackInfo>& tracks, const QVector<bool>& stemsReady);
 namespace {
 struct ScannedTracks { QVector<TrackInfo> tracks; QVector<bool> stemsReady; };
+struct ScannedUsb { RekordboxUsb::Library library; QVector<bool> stemsReady; QString error; bool ok = false; };
 }
 
 LibraryWidget::LibraryWidget(QWidget* parent) : QWidget(parent) {
@@ -40,7 +41,10 @@ LibraryWidget::LibraryWidget(QWidget* parent) : QWidget(parent) {
     auto* root = new QVBoxLayout(this); root->setContentsMargins(0, 0, 0, 0);
     m_stack = new QStackedWidget; root->addWidget(m_stack);
     buildSource(); buildBrowse(); buildSearch();
-    connect(&Library::instance(), &Library::changed, this, [this] {
+    auto* refresh = new QTimer(this); refresh->setSingleShot(true);
+    connect(&Library::instance(), &Library::changed, refresh, qOverload<>(&QTimer::start));
+    connect(refresh, &QTimer::timeout, this, [this] {
+        if (!isVisible()) return;
         refreshSource();
         if (m_page == Browse || m_page == TagList) refreshGroups();
         if (m_page == Search) showTracks(Library::instance().allTracks(m_searchEdit->text()), m_searchTable);
@@ -71,44 +75,27 @@ void LibraryWidget::buildSource() {
         const auto* item = m_sourceList->currentItem(); m_sourceRoot = item ? item->data(Qt::UserRole).toString() : QString();
         if (!m_sourceRoot.isEmpty() && RekordboxUsb::isRekordboxUsb(m_sourceRoot)
             && !m_rekordboxImported.contains(m_sourceRoot)) {
-            m_rekordboxImported.insert(m_sourceRoot);
             const QString root = m_sourceRoot;
             open->setEnabled(false); open->setText("Reading rekordbox USB...");
-            auto* watcher = new QFutureWatcher<RekordboxUsb::Library>(this);
-            connect(watcher, &QFutureWatcher<RekordboxUsb::Library>::finished, this, [this, open, watcher, root] {
-                const auto rb = watcher->result(); watcher->deleteLater();
+            auto* watcher = new QFutureWatcher<ScannedUsb>(this);
+            connect(watcher, &QFutureWatcher<ScannedUsb>::finished, this, [this, open, watcher, root] {
+                const auto scanned = watcher->result(); watcher->deleteLater();
                 open->setEnabled(true); open->setText("Open library");
-                QVector<TrackInfo> tracks; QVector<bool> stems;
-                QHash<int, QString> pathByRow;
-                for (auto it = rb.rowIdToTrack.constBegin(); it != rb.rowIdToTrack.constEnd(); ++it)
-                    if (it.value() >= 0 && it.value() < rb.tracks.size())
-                        pathByRow[it.key()] = RekordboxUsb::trackAbsolutePath(root, rb.tracks[it.value()]);
-                for (const auto& t : rb.tracks) {
-                    TrackInfo info;
-                    info.path = RekordboxUsb::trackAbsolutePath(root, t);
-                    if (info.path.isEmpty()) continue;
-                    info.title = t.title; info.artist = t.artist; info.album = t.album; info.genre = t.genre;
-                    info.durationSec = t.durationSec; info.bpm = t.bpm; info.keyText = t.keyText;
-                    tracks.append(info); stems.append(StemManager::stemsExistFor(info.path));
+                if (!scanned.ok || !Library::instance().importRekordbox(root, scanned.library, scanned.stemsReady)) {
+                    QMessageBox::warning(this, "Rekordbox USB", scanned.ok ? "Could not save the USB library." : scanned.error);
+                    return;
                 }
-                if (!tracks.isEmpty()) {
-                    importScannedLibraryTracks(tracks, stems);
-                    auto& lib = Library::instance();
-                    for (const auto& p : rb.playlists) {
-                        const qint64 pid = lib.createPlaylist("RB: " + p.name);
-                        if (pid < 0) continue;
-                        for (int rowId : p.trackRowIds) {
-                            const QString path = pathByRow.value(rowId);
-                            const qint64 tid = path.isEmpty() ? -1 : lib.trackIdForPath(path);
-                            if (tid >= 0) lib.addToPlaylist(pid, tid);
-                        }
-                    }
-                }
-                refreshSource(); refreshGroups();
+                m_rekordboxImported.insert(root);
                 showPage(Browse);
             });
             watcher->setFuture(QtConcurrent::run([root] {
-                RekordboxUsb::Library lib; RekordboxUsb::parse(root, &lib); return lib;
+                ScannedUsb scanned;
+                scanned.ok = RekordboxUsb::parse(root, &scanned.library, &scanned.error);
+                if (scanned.ok) for (const auto& track : scanned.library.tracks) {
+                    const QString path = RekordboxUsb::trackAbsolutePath(root, track);
+                    scanned.stemsReady.append(!path.isEmpty() && StemManager::stemsExistFor(path));
+                }
+                return scanned;
             }));
             return;
         }
@@ -230,6 +217,7 @@ void LibraryWidget::buildBrowse() {
         showTracks(tracks, m_table);
     });
     setTargetDeck(0); m_category = "PLAYLIST";
+    const QSignalBlocker navigationBlocker(m_navList); m_navList->setCurrentRow(1);
 }
 
 void LibraryWidget::refreshGroups() {
@@ -306,12 +294,13 @@ void LibraryWidget::buildKeyboard(bool azerty) {
 
 void LibraryWidget::showTracks(const QVector<LibraryTrack>& tracks, QTableWidget* table) {
     const QString selected = table->currentRow() >= 0 && table->item(table->currentRow(), 0) ? table->item(table->currentRow(), 0)->data(Qt::UserRole).toString() : QString();
+    const QSignalBlocker blocker(table);
+    const bool updates = table->updatesEnabled(); table->setUpdatesEnabled(false);
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     table->setSortingEnabled(false); table->clear(); table->setColumnCount(6); table->setRowCount(tracks.size());
     table->setHorizontalHeaderLabels({"#", "TRACK", "TIME", "BPM", "KEY", "STEMS"}); table->verticalHeader()->hide();
     table->setSelectionBehavior(QAbstractItemView::SelectRows); table->setSelectionMode(QAbstractItemView::SingleSelection);
     table->setEditTriggers(QAbstractItemView::NoEditTriggers); table->setAlternatingRowColors(true); table->setShowGrid(false);
-    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    for (int col : {0, 2, 3, 4, 5}) table->horizontalHeader()->setSectionResizeMode(col, QHeaderView::ResizeToContents);
     QFont font = table->font(); font.setPointSize(QVector<int>{12, 15, 18}[m_fontStep]); table->setFont(font);
     for (int row = 0; row < tracks.size(); ++row) {
         const auto& t = tracks[row]; const QStringList values{QString::number(row + 1), t.title + " — " + t.artist, Ui::time(t.durationSec), QString::number(t.bpm, 'f', 1), t.keyText, t.stemsReady ? "●" : ""};
@@ -319,6 +308,9 @@ void LibraryWidget::showTracks(const QVector<LibraryTrack>& tracks, QTableWidget
         table->item(row, 0)->setData(Qt::UserRole, t.path); table->item(row, 0)->setData(Qt::UserRole + 1, t.id);
         table->setRowHeight(row, 36 + m_fontStep * 4); if (t.path == selected) table->selectRow(row);
     }
+    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    for (int col : {0, 2, 3, 4, 5}) table->horizontalHeader()->setSectionResizeMode(col, QHeaderView::ResizeToContents);
+    table->setUpdatesEnabled(updates);
     if (!table->property("wired").toBool()) {
         table->setProperty("wired", true);
         connect(table, &QTableWidget::cellDoubleClicked, this, [this, table](int row, int) { trackActivated(table, row); });

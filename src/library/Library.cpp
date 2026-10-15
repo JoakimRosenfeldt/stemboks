@@ -1,4 +1,5 @@
 #include "Library.h"
+#include "RekordboxUsb.h"
 #include "../control/AppSettings.h"
 #include "../engine/Decoder.h"
 #include "../stems/StemManager.h"
@@ -208,6 +209,38 @@ qint64 Library::addOrUpdateTrack(const TrackInfo& info) {
     const qint64 id = upsertTrack(m_db, info, StemManager::stemsExistFor(info.path));
     if (id >= 0) emit changed();
     return id;
+}
+bool Library::importRekordbox(const QString& root, const RekordboxUsb::Library& usb, const QVector<bool>& stemsReady) {
+    if (stemsReady.size() != usb.tracks.size() || !m_db.transaction()) return false;
+    QVector<qint64> ids(usb.tracks.size(), -1);
+    for (qsizetype i = 0; i < usb.tracks.size(); ++i) {
+        const auto& track = usb.tracks[i];
+        TrackInfo info;
+        info.path = RekordboxUsb::trackAbsolutePath(root, track);
+        if (info.path.isEmpty()) continue;
+        info.title = track.title; info.artist = track.artist; info.album = track.album; info.genre = track.genre;
+        info.durationSec = track.durationSec; info.bpm = track.bpm; info.keyText = track.keyText;
+        ids[i] = upsertTrack(m_db, info, stemsReady[i]);
+        if (ids[i] < 0) { m_db.rollback(); return false; }
+    }
+    for (const auto& playlist : usb.playlists) {
+        QSqlQuery query(m_db);
+        const QString name = "RB: " + playlist.name;
+        query.prepare("INSERT INTO playlists(name) VALUES(?)"); query.addBindValue(name);
+        if (!query.exec()) { m_db.rollback(); return false; }
+        const qint64 pid = query.lastInsertId().toLongLong();
+        int position = 0;
+        for (int rowId : playlist.trackRowIds) {
+            const int index = usb.rowIdToTrack.value(rowId, -1);
+            if (index < 0 || index >= ids.size() || ids[index] < 0) continue;
+            if (!execute(m_db, "INSERT OR IGNORE INTO playlist_tracks(pid,tid,position) VALUES(?,?,?)", {pid, ids[index], position++})) {
+                m_db.rollback(); return false;
+            }
+        }
+    }
+    if (!m_db.commit()) { m_db.rollback(); return false; }
+    emit changed();
+    return true;
 }
 // The scan worker supplies stem availability so importing never opens containers.
 bool importScannedLibraryTracks(const QVector<TrackInfo>& tracks, const QVector<bool>& stemsReady) {
