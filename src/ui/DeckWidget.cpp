@@ -113,7 +113,7 @@ void DeckWidget::triggerPad(int pad, bool release) {
             r.set(base + "activate", 0); return;
         }
         if (QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) || (track && track->hotcues[pad].positionSec < 0)) Ui::pulse(base + "set");
-        else Ui::pulse(base + "activate");
+        else r.set(base + "activate", 1);
     } else if (m_padMode == 1 && !release) {
         const double sizes[] = {0.5, 1, 2, 4, 8, 16, 32};
         if (pad == 7) Ui::pulse(m_prefix + (QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) || (track && track->loopInSec >= 0 && track->loopOutSec < 0) ? "loop.setOut" : "loop.setIn"));
