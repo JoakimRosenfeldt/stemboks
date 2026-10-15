@@ -48,6 +48,9 @@ original library identity for metadata and exported cues.
 
 The ONNX separation queue remains an offline preparation service. It does not
 render playback audio or open output devices.
+CI downloads the CPU ONNX Runtime 1.22 SDK with pinned SHA-256 hashes and
+requires separation support at configure time. The application packages its
+runtime libraries and notices. Local builds may omit ONNX Runtime.
 
 ## Startup and shutdown
 

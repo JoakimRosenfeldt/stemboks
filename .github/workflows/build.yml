@@ -29,13 +29,18 @@ jobs:
             echo "$BUILDENV_SHA256  $RUNNER_TEMP/mixxx-deps.zip" | shasum -a 256 --check
             (cd "$BUILDENV_BASEPATH" && cmake -E tar xf "$RUNNER_TEMP/mixxx-deps.zip")
           fi
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Fetch ONNX Runtime
+        run: python tools/fetch_onnxruntime.py
       - name: Configure
         run: >-
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=13.3
           -DMIXXX_VCPKG_ROOT="$MIXXX_VCPKG_ROOT"
           -DCMAKE_TOOLCHAIN_FILE="$MIXXX_VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET="$VCPKG_TARGET_TRIPLET"
-          -DVCPKG_MANIFEST_MODE=OFF -DSTATIC_DEPS=ON
+          -DVCPKG_MANIFEST_MODE=OFF -DSTATIC_DEPS=ON -DSTEMBOKS_REQUIRE_ONNX=ON
       - name: Build
         run: cmake --build build --target stemboks -j3
       - name: Check executable
@@ -68,14 +73,18 @@ jobs:
             libportmidi-dev libprotobuf-dev protobuf-compiler librubberband-dev \
             libsndfile1-dev libsoundtouch-dev libsqlite3-dev libtag1-dev \
             libudev-dev libusb-1.0-0-dev libgl1-mesa-dev portaudio19-dev
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Fetch ONNX Runtime
+        run: python tools/fetch_onnxruntime.py
       - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DSTEMBOKS_REQUIRE_ONNX=ON
       - name: Build
         run: cmake --build build --target stemboks -j3
       - name: Check executable
         run: QT_QPA_PLATFORM=offscreen ./build/stemboks --help
       - name: Package
-        run: tar -C build -czf stemboks-linux-${{ matrix.arch }}.tar.gz stemboks mixxx
+        run: tar -C build -czf stemboks-linux-${{ matrix.arch }}.tar.gz stemboks mixxx lib licenses
       - uses: actions/upload-artifact@v4
         with:
           name: stemboks-linux-${{ matrix.arch }}
@@ -116,6 +125,10 @@ jobs:
             cmake -E tar xf $archive
             Pop-Location
           }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Fetch ONNX Runtime
+        run: python tools/fetch_onnxruntime.py
       - name: Configure
         shell: cmd
         run: >-
@@ -123,7 +136,7 @@ jobs:
           -DMIXXX_VCPKG_ROOT="%MIXXX_VCPKG_ROOT%"
           -DCMAKE_TOOLCHAIN_FILE="%MIXXX_VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET%
-          -DVCPKG_MANIFEST_MODE=OFF -DSTATIC_DEPS=ON
+          -DVCPKG_MANIFEST_MODE=OFF -DSTATIC_DEPS=ON -DSTEMBOKS_REQUIRE_ONNX=ON
       - name: Build
         run: cmake --build build --target stemboks -j3
       - name: Check executable
@@ -134,6 +147,7 @@ jobs:
           New-Item -ItemType Directory dist
           Copy-Item build/stemboks.exe dist/
           Copy-Item build/mixxx dist/ -Recurse
+          Copy-Item build/licenses dist/ -Recurse
           Get-ChildItem build -Filter *.dll | Copy-Item -Destination dist
       - uses: actions/upload-artifact@v4
         with: { name: stemboks-windows, path: dist }

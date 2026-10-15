@@ -29,6 +29,10 @@ open build/stemboks.app
 
 Use a fresh build directory when upgrading from the previous implementation.
 Optional ONNX Runtime enables in-app stem separation.
+To use the same pinned CPU runtime as CI, run
+`python3 tools/fetch_onnxruntime.py` with Python 3.12 or later and pass the
+printed directory as `-DONNXRUNTIME_DIR=...` when configuring. This also
+bundles the runtime and its licenses.
 
 On Ubuntu 24.04, x86-64 or ARM64:
 
@@ -50,6 +54,9 @@ Windows uses MSVC 2022 or later and Mixxx's prebuilt release dependencies.
 The Windows job in [.github/workflows/build.yml](.github/workflows/build.yml)
 contains the complete configure and package procedure. CI builds macOS,
 Windows x64, Linux x86-64, and Linux ARM64.
+The CI packages include ONNX Runtime 1.22. The macOS package requires macOS
+13.3 or later; the Windows package requires Windows 10 build 19041 or later.
+Linux packages use Ubuntu 24.04 system libraries.
 
 ## Use
 

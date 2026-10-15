@@ -42,7 +42,7 @@ DeckWidget::DeckWidget(Deck* deck, QWidget* parent) : QWidget(parent), m_deck(de
     transport->addWidget(m_cue); transport->addWidget(m_sync); ml->addLayout(transport);
     connect(m_cue, &QPushButton::pressed, this, [this] { ControlRegistry::instance().set(m_prefix + "transport.cue", 1); });
     connect(m_cue, &QPushButton::released, this, [this] { ControlRegistry::instance().set(m_prefix + "transport.cue", 0); });
-    connect(m_sync, &QPushButton::clicked, this, [this] { ControlRegistry::instance().toggle(m_prefix + "sync.enabled"); });
+    connect(m_sync, &QPushButton::toggled, this, [this](bool enabled) { ControlRegistry::instance().set(m_prefix + "sync.enabled", enabled); });
     auto* timeBox = new QVBoxLayout; timeBox->setSpacing(0);
     m_timeCaption = Ui::label("REMAIN", "StemboxCaption"); m_time = Ui::label("00:00.00", "StemboxTimeBig");
     timeBox->addWidget(m_timeCaption); timeBox->addWidget(m_time); ml->addLayout(timeBox, 1);
@@ -62,8 +62,8 @@ DeckWidget::DeckWidget(Deck* deck, QWidget* parent) : QWidget(parent), m_deck(de
     m_mt = Ui::button("MT", "DeckMtBtn"); m_mt->setCheckable(true);
     m_quantize = Ui::button("QUANTIZE", "DeckQuantBtn"); m_quantize->setCheckable(true);
     sl->addWidget(m_mt); sl->addWidget(m_quantize);
-    connect(m_mt, &QPushButton::clicked, this, [this] { ControlRegistry::instance().toggle(m_prefix + "key.lock"); });
-    connect(m_quantize, &QPushButton::clicked, this, [this] { ControlRegistry::instance().toggle(m_prefix + "grid.quantize"); });
+    connect(m_mt, &QPushButton::toggled, this, [this](bool enabled) { ControlRegistry::instance().set(m_prefix + "key.lock", enabled); });
+    connect(m_quantize, &QPushButton::toggled, this, [this](bool enabled) { ControlRegistry::instance().set(m_prefix + "grid.quantize", enabled); });
     m_status = Ui::label("Not Loaded.", "StemboxNotLoaded"); sl->addWidget(m_status, 1);
     m_colorFx = Ui::button("FILTER", "DeckColorFxBtn"); sl->addWidget(m_colorFx);
     const QStringList colors{"filter", "space", "decho", "crush", "pitch", "noise"};
@@ -98,7 +98,9 @@ void DeckWidget::buildPads() {
     for (int i = 0; i < names.size(); ++i) {
         auto* b = Ui::button(names[i], "StemboxPadMode"); b->setCheckable(true); b->setFixedHeight(22); b->setMinimumWidth(0);
         modes->addWidget(b); m_padModes.append(b);
-        connect(b, &QPushButton::clicked, this, [this, i] { m_padMode = i; refresh(); });
+        connect(b, &QPushButton::toggled, this, [this, i](bool checked) {
+            if (checked) { ControlRegistry::instance().set(m_prefix + "pads.mode", i); refresh(); }
+        });
     }
     root->addLayout(modes);
 }
@@ -147,6 +149,7 @@ void DeckWidget::triggerPad(int pad, bool release) {
 
 void DeckWidget::refresh() {
     auto& r = ControlRegistry::instance(); const auto track = m_deck->track();
+    m_padMode = qBound(0, int(r.get(m_prefix + "pads.mode")), int(m_padModes.size()) - 1);
     const bool remain = r.get("app.timeDisplay") == 0;
     const double duration = m_deck->durationSec();
     const QString title = track ? r.getString(m_prefix + "track.title", track->info.title) : "Not Loaded.";
@@ -172,8 +175,11 @@ void DeckWidget::refresh() {
     m_status->setStyleSheet(track ? (track->hasStems ? "color:#66bb6a;" : "color:#b8b8b8;") : "color:#ff2d20;");
     m_trackNo->setText(track ? QString("TRACK\n%1").arg(m_deck->index() + 1) : "TRACK\n--");
     m_play->setText(QString("PLAYER %1\n%2").arg(m_deck->index() + 1).arg(m_deck->playing() ? "PAUSE" : "PLAY"));
-    m_sync->setChecked(r.getBool(m_prefix + "sync.enabled")); m_mt->setChecked(r.getBool(m_prefix + "key.lock"));
-    m_quantize->setChecked(r.getBool(m_prefix + "grid.quantize"));
+    {
+        const QSignalBlocker syncBlocker(m_sync), mtBlocker(m_mt), quantizeBlocker(m_quantize);
+        m_sync->setChecked(r.getBool(m_prefix + "sync.enabled")); m_mt->setChecked(r.getBool(m_prefix + "key.lock"));
+        m_quantize->setChecked(r.getBool(m_prefix + "grid.quantize"));
+    }
     m_colorFx->setText(r.getString(m_prefix + "colorfx.name", "filter").toUpper());
     m_colorFxVal->setText(QString("%1%").arg(qRound(r.get(m_prefix + "colorfx.amount") * 100)));
     if (track && !track->info.artwork.isNull()) {
@@ -182,7 +188,10 @@ void DeckWidget::refresh() {
             m_artwork->setProperty("path", track->info.path);
         }
     } else { m_artwork->setText("●"); m_artwork->setProperty("path", QString()); }
-    for (int i = 0; i < m_padModes.size(); ++i) m_padModes[i]->setChecked(i == m_padMode);
+    for (int i = 0; i < m_padModes.size(); ++i) {
+        const QSignalBlocker blocker(m_padModes[i]);
+        m_padModes[i]->setChecked(i == m_padMode);
+    }
     const QStringList stemNames{"vocals", "drums", "bass", "other"};
     const QStringList loopNames{"1/2", "1", "2", "4", "8", "16", "32", "IN / OUT"};
     for (int i = 0; i < 8; ++i) {
