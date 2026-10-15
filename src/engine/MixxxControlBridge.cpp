@@ -113,8 +113,21 @@ struct MixxxControlBridge::Impl {
             else r.set(cue + "activate", 1);
         } else if (mode == 1 && pressed) {
             const double sizes[]{.5, 1, 2, 4, 8, 16, 32};
-            if (pad == 7) pulse(prefix + "loop.setIn");
-            else { r.set(prefix + "loop.size", sizes[pad]); pulse(prefix + "loop.active"); }
+            const QString group = deckGroup(deck);
+            if (pad == 7) {
+                const double start = ::ControlObject::get(::ConfigKey(group, "loop_start_position"));
+                const double end = ::ControlObject::get(::ConfigKey(group, "loop_end_position"));
+                pulse(prefix + (start >= 0 && end < 0 ? "loop.setOut" : "loop.setIn"));
+            } else {
+                const bool same = ::ControlObject::get(::ConfigKey(group, "loop_enabled")) != 0
+                        && ::ControlObject::get(::ConfigKey(group, "beatloop_size")) == sizes[pad];
+                setNative(group, "beatloop_size", sizes[pad]);
+                r.setSilent(prefix + "loop.size", sizes[pad]);
+                if (same) {
+                    setNative(group, "loop_enabled", 0);
+                    r.setSilent(prefix + "loop.enabled", 0);
+                } else pulse(prefix + "loop.active");
+            }
         } else if (mode == 2 && pressed) {
             r.set(prefix + "jump.size", 4 << (pad / 2)); pulse(prefix + (pad % 2 ? "jump.forward" : "jump.backward"));
         } else if (mode == 3 && pressed) {

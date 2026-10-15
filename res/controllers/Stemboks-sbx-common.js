@@ -76,8 +76,14 @@ StemboksSBX.create = function(inputs, outputs) {
         } else if (binding.mode === "relative") {
             var step = note ? 1 : raw - 64;
             if (binding.twosComplement) step = raw >= 64 ? raw - 128 : raw;
-            engine.setValue(group, binding.control,
-                engine.getValue(group, binding.control) + step * (binding.outMax - binding.outMin));
+            var delta = step * (binding.outMax - binding.outMin);
+            if (/\.(jog\.move|scratch\.wheelMove)$/.test(binding.control)) {
+                engine.setValue(group, binding.control, 0);
+                engine.setValue(group, binding.control, delta);
+                engine.setValue(group, binding.control, 0);
+            } else {
+                engine.setValue(group, binding.control, engine.getValue(group, binding.control) + delta);
+            }
         } else if (binding.mode === "toggle" && pressed) {
             engine.setValue(group, binding.control, engine.getValue(group, binding.control) !== 0 ? 0 : 1);
         } else if (binding.mode === "trigger" && pressed) {

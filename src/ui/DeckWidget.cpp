@@ -265,7 +265,6 @@ void DeckWidget::openGridEdit() {
 
     if (dlg.exec() != QDialog::Accepted) return;
     m_deck->applyBeatgrid(bpm->value(), firstBeat->value());
-    Library::instance().saveGrid(track->info.path, bpm->value(), firstBeat->value());
     ControlRegistry::instance().set(m_prefix + "grid.changed", 1);
 }
 

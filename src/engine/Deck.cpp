@@ -66,7 +66,7 @@ void Deck::attach(::BaseTrackPlayer* player, ::mixxx::CoreServices* core) {
                 QCryptographicHash::Sha256).toHex());
         const ::ConfigKey migrated("[Stemboks Migration]", migrationKey);
         const bool imported = m_impl->core->getSettings()->getValue<bool>(migrated, false);
-        // Existing Mixxx metadata wins. Remember deliberate cue/grid deletion after import.
+        // Import legacy state once per native track, then preserve subsequent Mixxx edits.
         bool hasHotcues = false;
         if (native) for (const auto& cue : native->getCuePoints()) if (cue->getHotCue() >= 0) hasHotcues = true;
         if (native && !imported && !hasHotcues) {
@@ -87,7 +87,7 @@ void Deck::attach(::BaseTrackPlayer* player, ::mixxx::CoreServices* core) {
                 }
             }
         }
-        if (native && !imported && !native->getBeats()) {
+        if (native && !imported) {
             double bpm = 0, firstBeat = 0;
             if (Library::instance().loadGrid(m_impl->sourcePath, &bpm, &firstBeat)) applyBeatgrid(bpm, firstBeat);
         }
@@ -101,8 +101,8 @@ void Deck::attach(::BaseTrackPlayer* player, ::mixxx::CoreServices* core) {
         m_impl->native.reset(); m_impl->snapshot.reset();
         refreshTrack();
     }));
-    m_impl->connections.push_back(connect(player, &::BaseTrackPlayer::loadingTrack, this, [this](::TrackPointer, ::TrackPointer) {
-        ControlRegistry::instance().setString(deckKey(m_index, "load.status"), QStringLiteral("Loading..."));
+    m_impl->connections.push_back(connect(player, &::BaseTrackPlayer::loadingTrack, this, [this](::TrackPointer incoming, ::TrackPointer) {
+        if (incoming) ControlRegistry::instance().setString(deckKey(m_index, "load.status"), QStringLiteral("Loading..."));
     }));
     m_impl->connections.push_back(connect(player, &::BaseTrackPlayer::loadFailed, this, [this](::TrackPointer failed, const QString& reason) {
         if (failed && !m_impl->pendingLocation.isEmpty() && failed->getLocation() != m_impl->pendingLocation) return;
@@ -162,6 +162,7 @@ void Deck::loadPath(const QString& path) {
 void Deck::loadTrack(LoadedTrackPtr track) { if (track) loadPath(track->info.path); else unload(); }
 void Deck::unload() {
     ++m_impl->generation;
+    ControlRegistry::instance().setString(deckKey(m_index, "load.status"), {});
     persistCues();
     if (m_impl->player) m_impl->player->slotEjectTrack(1);
 }
