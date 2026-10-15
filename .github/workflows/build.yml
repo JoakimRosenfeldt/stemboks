@@ -20,6 +20,15 @@ jobs:
           key: mixxx-2.6-a39faac-macos-${{ runner.arch }}
       - name: Install Mixxx dependencies
         run: bash build-tools/tools/macos_release_buildenv.sh setup
+      - name: Prepare dependency toolchain
+        run: |
+          brew install ninja
+          if [ ! -f "$MIXXX_VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" ]; then
+            mkdir -p "$BUILDENV_BASEPATH"
+            curl --fail --location --retry 3 "$BUILDENV_URL" -o "$RUNNER_TEMP/mixxx-deps.zip"
+            echo "$BUILDENV_SHA256  $RUNNER_TEMP/mixxx-deps.zip" | shasum -a 256 --check
+            (cd "$BUILDENV_BASEPATH" && cmake -E tar xf "$RUNNER_TEMP/mixxx-deps.zip")
+          fi
       - name: Configure
         run: >-
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -92,6 +101,21 @@ jobs:
       - name: Install Mixxx dependencies
         shell: cmd
         run: call build-tools\tools\windows_release_buildenv.bat setup
+      - name: Prepare dependency toolchain
+        shell: pwsh
+        run: |
+          choco install ninja --yes --no-progress
+          if (!(Test-Path "$env:MIXXX_VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake")) {
+            $archive = "$env:RUNNER_TEMP/mixxx-deps.zip"
+            Invoke-WebRequest $env:BUILDENV_URL -OutFile $archive
+            if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLower() -ne $env:BUILDENV_SHA256) {
+              throw "Mixxx dependency checksum mismatch"
+            }
+            New-Item -ItemType Directory -Force $env:BUILDENV_BASEPATH
+            Push-Location $env:BUILDENV_BASEPATH
+            cmake -E tar xf $archive
+            Pop-Location
+          }
       - name: Configure
         shell: cmd
         run: >-
