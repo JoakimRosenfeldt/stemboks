@@ -274,8 +274,10 @@ struct MixxxControlBridge::Impl {
                 if (value != 0) scratch.scratchEnable(deck + 1, 128, 33.333333, .125, .125 / 32);
                 else scratch.scratchDisable(deck + 1);
             } else if (suffix == "jog.move") {
-                if (scratch.isScratching(deck + 1)) scratch.scratchTick(deck + 1, int(std::round(value * 128)));
-                else setNative(group, "jog", value);
+                if (value != 0) {
+                    if (scratch.isScratching(deck + 1)) scratch.scratchTick(deck + 1, int(std::round(value * 128)));
+                    else setNative(group, "jog", ::ControlObject::get(::ConfigKey(group, "jog")) + value);
+                }
                 registry.setSilent(name, 0);
             } else if (suffix == "pitchbend") {
                 setNative(group, "rate_temp_up", value > 0); setNative(group, "rate_temp_down", value < 0);
@@ -339,7 +341,6 @@ MixxxControlBridge::MixxxControlBridge(::mixxx::CoreServices* core, QObject* par
             const QString cuePrefix = prefix + QStringLiteral("hotcue.%1.").arg(cue);
             impl.bind(cuePrefix + "set", group, QStringLiteral("hotcue_%1_set").arg(cue), 1, 0, false, true);
             impl.bind(cuePrefix + "clear", group, QStringLiteral("hotcue_%1_clear").arg(cue), 1, 0, false, true);
-            impl.bind(cuePrefix + "activate", group, QStringLiteral("hotcue_%1_activate").arg(cue));
             impl.bind(cuePrefix + "present", group, QStringLiteral("hotcue_%1_status").arg(cue), 1, 0, false, false, false);
         }
         for (int unit = 1; unit <= 2; ++unit) impl.bind(prefix + QStringLiteral("fx.unit%1").arg(unit),
